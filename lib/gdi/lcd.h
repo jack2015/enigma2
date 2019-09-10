@@ -33,6 +33,7 @@ protected:
 	int locked;
 	static eLCD *instance;
 	void setSize(int xres, int yres, int bpp);
+	char boxtype_name[20];
 #endif
 public:
 	static eLCD *getInstance();
@@ -57,7 +58,7 @@ public:
 	int stride() { return _stride; };
 	virtual eSize size() { return res; };
 	virtual void update()=0;
-#if defined(HAVE_TEXTLCD) || defined(HAVE_7SEGMENT)
+#ifdef HAVE_TEXTLCD
 	virtual void renderText(ePoint start, const char *text);
 #endif
 #endif

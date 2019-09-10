@@ -28,11 +28,19 @@ if HAVE_TEXTLCD
 SUBDIRS += displaytext
 endif
 
-if HAVE_COLORLCD
+if HAVE_COLORLCD390
+SUBDIRS += display390
+endif
+
+if HAVE_COLORLCD2
 SUBDIRS += display96
 endif
 
-if HAVE_COLORLCD128
+if HAVE_COLORLCD3
+SUBDIRS += display128dm
+endif
+
+if HAVE_COLORLCD1
 SUBDIRS += display128
 endif
 
@@ -66,10 +74,6 @@ endif
 
 if HAVE_BWLCD128
 SUBDIRS += vfd128
-endif
-
-if HAVE_7SEGMENT
-SUBDIRS += 7segment
 endif
 
 iso-639-3.pck: $(srcdir)/iso-639-3.tab

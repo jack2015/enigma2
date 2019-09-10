@@ -1,12 +1,16 @@
 from fcntl import ioctl
 from struct import pack, unpack
+from boxbranding import getBoxType, getBrandOEM
 from os import path
 from Components.config import config
 
 def getFPVersion():
 	ret = None
 	try:
-		ret = long(open("/proc/stb/fp/version", "r").read())
+		if getBoxType() in ('dm7080','dm820','dm520','dm525','dm900','dm920'):
+			ret = open("/proc/stb/fp/version", "r").read()
+		else:
+			ret = long(open("/proc/stb/fp/version", "r").read())
 	except IOError:
 		try:
 			fp = open("/dev/dbox/fp0")

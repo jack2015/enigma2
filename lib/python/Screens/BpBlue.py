@@ -6,11 +6,13 @@ from Components.ScrollLabel import ScrollLabel
 from Components.MenuList import MenuList
 from Components.Sources.List import List
 from Components.Pixmap import MultiPixmap
-from Components.About import about
+from Components.About import about, getChipSetString, getIsBroadcom
 from Tools.Directories import fileExists
 from ServiceReference import ServiceReference
 from os import system, listdir, remove as os_remove
 from enigma import iServiceInformation, eTimer
+from boxbranding import getMachineBuild, getBoxType, getMachineBrand
+from Components.SystemInfo import SystemInfo
 import socket
 
 
@@ -244,7 +246,7 @@ class BhsysInfo(Screen):
 	<screen position="center,center" size="800,600" title="Black Hole Info" flags="wfNoBorder">
 		<widget name="lab1" position="50,25" halign="left" size="700,550" zPosition="1" font="Regular;20" valign="top" transparent="1" />
 	</screen>"""
-	
+
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self["lab1"] =  ScrollLabel()
@@ -258,16 +260,22 @@ class BhsysInfo(Screen):
 			"up": self["lab1"].pageUp,
 			"down": self["lab1"].pageDown
 		}, -1)
-		
+
 	def updateInfo(self):
 		rc = system("df -h > /tmp/syinfo.tmp")
-		text = _("BOX\n") + _("Brand:") + "\tVuplus\n"
-		f = open("/proc/stb/info/vumodel",'r')
+		text = _("BOX\n") + _("Brand:") + "\t" + about.getMachineBrand() + "\n"
+		f = open("/proc/stb/info/model",'r')
  		text += _("Model:\t") + f.readline()
  		f.close()
-		f = open("/proc/stb/info/chipset",'r')
- 		text += _("Chipset:\t") + f.readline() +"\n"
- 		f.close()
+
+		if about.getChipSetString() != _("unavailable"):
+			if SystemInfo["HasHiSi"]:
+				text += _("Chipset:\tHiSilicon %s\n") % about.getChipSetString().upper()
+			elif about.getIsBroadcom():
+				text += _("Chipset:\tBroadcom %s\n") % about.getChipSetString().upper()
+			else:
+				text += _("Chipset:\t%s\n") % about.getChipSetString().upper()
+
 		text += _("MEMORY\n")
 		memTotal = memFree = swapTotal = swapFree = 0
 		for line in open("/proc/meminfo",'r'):
@@ -333,7 +341,6 @@ class BhEpgPanel(Screen):
 
 		})
 
-
 	def KeyOk(self):
 		sel = self["list"].getCurrent()
 		if sel:
@@ -351,10 +358,6 @@ class BhEpgPanel(Screen):
 				#epgsearch(self.session)
 				from Plugins.Extensions.EPGSearch.EPGSearch import EPGSearch  as epgsearch
 				self.session.open(epgsearch)
-			
-			
-	
-
 
 class DeliteBp:
 	def __init__(self):
