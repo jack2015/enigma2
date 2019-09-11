@@ -10,12 +10,15 @@ from Components.Console import Console
 from Components.Language import language
 from Tools.Directories import fileCheck, fileExists
 from enigma import getDesktop
-from os import access, R_OK
+from os import access, R_OK, path as os_path
 
-from boxbranding import getBoxType
+from boxbranding import getBoxType, getBrandOEM
 
 def getFilePath(setting):
-	return "/proc/stb/fb/dst_%s" % (setting)
+	if getBrandOEM() in ('dreambox',):
+		return "/proc/stb/vmpeg/0/dst_%s" % (setting)
+	else:
+		return "/proc/stb/fb/dst_%s" % (setting)
 
 def setPositionParameter(parameter, configElement):
 	f = open(getFilePath(parameter), "w")
@@ -56,22 +59,30 @@ def InitOsd():
 
 	def set3DZnorm(configElement):
 		if SystemInfo["CanChange3DOsd"] and getBoxType() not in ('spycat'):
-			print '[UserInterfacePositioner] Setting 3D depth:',configElement.value
-			f = open("/proc/stb/fb/znorm", "w")
-			f.write('%d' % int(configElement.value))
-			f.close()
+			if os_path.exists("/proc/stb/fb/znorm"):
+				print '[UserInterfacePositioner] Setting 3D depth:',configElement.value
+				f = open("/proc/stb/fb/znorm", "w")
+				f.write('%d' % int(configElement.value))
+				f.close()
 	config.osd.threeDznorm.addNotifier(set3DZnorm)
 
 def InitOsdPosition():
 	SystemInfo["CanChangeOsdAlpha"] = access('/proc/stb/video/alpha', R_OK) and True or False
-	SystemInfo["CanChangeOsdPosition"] = access('/proc/stb/fb/dst_left', R_OK) and True or False
+	SystemInfo["CanChangeOsdPosition"] = (access('/proc/stb/fb/dst_left', R_OK) or access('/proc/stb/vmpeg/0/dst_left', R_OK)) and True or False
 	SystemInfo["OsdSetup"] = SystemInfo["CanChangeOsdPosition"]
 
 	if SystemInfo["CanChangeOsdAlpha"] == True or SystemInfo["CanChangeOsdPosition"] == True:
 		SystemInfo["OsdMenu"] = True
 	else:
 		SystemInfo["OsdMenu"] = False
+		
+	if getBrandOEM() in ('fulan'):
+		SystemInfo["CanChangeOsdPosition"] = False
+		SystemInfo["CanChange3DOsd"] = False
 
+	if getBrandOEM() in ('dreambox',):
+		SystemInfo["CanChangeOsdPosition"] = True		
+	
 	def setOSDLeft(configElement):
 		if SystemInfo["CanChangeOsdPosition"]:
 			setPositionParameter("left", configElement)
@@ -263,7 +274,7 @@ class UserInterfacePositioner(Screen, ConfigListScreen):
 	def keyCancel(self):
 		if self["config"].isChanged():
 			from Screens.MessageBox import MessageBox
-			self.session.openWithCallback(self.cancelConfirm, MessageBox, _("Really close without saving settings?"), default = True)
+			self.session.openWithCallback(self.cancelConfirm, MessageBox, _("Really close without saving settings?"), default = False)
 		else:
 			self.close()
 
