@@ -170,6 +170,7 @@ class PliExtraInfo(Poll, Converter, object):
 		video_width = 0
 		video_pol = " "
 		video_rate = 0
+		video_rate_str = None
 		if path.exists("/proc/stb/vmpeg/0/yres"):
 			f = open("/proc/stb/vmpeg/0/yres", "r")
 			try:
@@ -199,9 +200,25 @@ class PliExtraInfo(Poll, Converter, object):
 				pass
 			f.close()
 
-		fps  = str((video_rate + 500) / 1000)
-		gamma = ("SDR", "HDR", "HDR10", "HLG", "")[info.getInfo(iServiceInformation.sGamma)]
-		return str(video_width) + "x" + str(video_height) + video_pol + fps + addspace(gamma)
+		if not video_rate:
+			if path.exists("/proc/stb/video/videomode"):
+				f = open("/proc/stb/video/videomode", "r")
+				try:
+					video_rate_str = str(f.read().lower().replace('\n',''))
+				except:
+					pass
+				f.close()
+			if video_rate_str == "1080i50":
+				video_rate  = 49500
+			else:
+				video_rate  = 59500
+			fps  = str((video_rate + 500) / 1000)
+			gamma = ("SDR", "HDR", "HDR10", "HLG", "")[info.getInfo(iServiceInformation.sGamma)]
+			return str(video_width) + "x" + str(video_height) + video_pol + fps + addspace(gamma)
+		else:
+			fps  = str((video_rate + 500) / 1000)
+			gamma = ("SDR", "HDR", "HDR10", "HLG", "")[info.getInfo(iServiceInformation.sGamma)]
+			return str(video_width) + "x" + str(video_height) + video_pol + fps + addspace(gamma)
 
 	def createVideoCodec(self, info):
 		return codec_data.get(info.getInfo(iServiceInformation.sVideoType), "N/A")
