@@ -17,7 +17,7 @@ caid_data = (
 	("0x1000", "0x10FF", "Tandberg",       "T",  False),
 	( "0x500",  "0x5ff", "Viaccess",       "V",  True ),
 	("0x2600", "0x2600", "Biss",           "BI", False),
-	("0x4aee", "0x4aee", "BulCrypt",       "BU", True ),
+	("0x4aee", "0x4aee", "BulCrypt",       "BU", False),
 	("0x5581", "0x5581", "BulCrypt",       "BU", False),
 	( "0xb00",  "0xbff", "Conax",          "CO", True ),
 	( "0xd00",  "0xdff", "CryptoWorks",    "CW", True ),
@@ -25,9 +25,9 @@ caid_data = (
 	("0x4ae0", "0x4ae1", "DRE-Crypt",      "DC", True ),
 	( "0x900",  "0x9ff", "NDS Videoguard", "ND", True ),
 	( "0xe00",  "0xeff", "PowerVu",        "PV", True ),
-	("0x4a30", "0x4a30", "DVN-JET",        "TB", True ),
-	("0x4ad2", "0x4ad3", "STREAMGUARD",    "SM", True ),
-	("0x4a02", "0x4a02", "TONGFANG",       "TF", True )
+	("0x4a30", "0x4a30", _("DVN-JET"),     "TB", True ),
+	("0x4ad2", "0x4ad3", _("STREAMGUARD"), "SM", True ),
+	("0x4a02", "0x4a02", _("TONGFANG"),    "TF", True )
 )
 
 # stream type to codec map
@@ -155,12 +155,6 @@ class PliExtraInfo(Poll, Converter, object):
 				if int(caid_entry[0], 16) <= int(self.current_caid, 16) <= int(caid_entry[1], 16):
 					caid_name = caid_entry[2]
 					break
-			if caid_name == "STREAMGUARD":
-				caid_name = _("cnsmsx")
-			if caid_name == "TONGFANG":
-				caid_name = _("cntongfang")
-			if caid_name == "DVN-JET":
-				caid_name = _("cndvnjet")
 			return caid_name + ":%04x:%04x:%04x" % (int(self.current_caid,16), int(self.current_provid,16), info.getInfo(iServiceInformation.sSID))
 		except:
 			pass
@@ -175,12 +169,6 @@ class PliExtraInfo(Poll, Converter, object):
 				if int(caid_entry[0], 16) <= int(self.current_caid, 16) <= int(caid_entry[1], 16):
 					caid_name = caid_entry[2]
 					break
-			if caid_name == "STREAMGUARD":
-				caid_name = _("cnsmsx")
-			if caid_name == "TONGFANG":
-				caid_name = _("cntongfang")
-			if caid_name == "DVN-JET":
-				caid_name = _("cndvnjet")
 			return caid_name + ":%04x" % (int(self.current_caid,16))
 		except:
 			pass
