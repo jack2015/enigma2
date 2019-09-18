@@ -9374,6 +9374,9 @@ msgstr "用户界面"
 msgid "User defined"
 msgstr "用户自定义"
 
+msgid "user_defined"
+msgstr "用户自定义"
+
 msgid "SCPC optimized search range"
 msgstr "SCPC优化搜索范围"
 
