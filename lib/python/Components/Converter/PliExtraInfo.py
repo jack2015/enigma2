@@ -14,9 +14,9 @@ caid_data = (
 	( "0x600",  "0x6ff", "Irdeto",         "I",  True ),
 	("0x1800", "0x18ff", "Nagravision",    "N",  True ),
 	( "0x100",  "0x1ff", "Seca Mediaguard","S",  True ),
-	("0x1000", "0x10FF", "Tandberg",       "T",  True ),
+	("0x1000", "0x10FF", "Tandberg",       "T",  False),
 	( "0x500",  "0x5ff", "Viaccess",       "V",  True ),
-	("0x2600", "0x2600", "Biss",           "BI", True ),
+	("0x2600", "0x2600", "Biss",           "BI", False),
 	("0x4aee", "0x4aee", "BulCrypt",       "BU", True ),
 	("0x5581", "0x5581", "BulCrypt",       "BU", False),
 	( "0xb00",  "0xbff", "Conax",          "CO", True ),
@@ -25,7 +25,7 @@ caid_data = (
 	("0x4ae0", "0x4ae1", "DRE-Crypt",      "DC", True ),
 	( "0x900",  "0x9ff", "NDS Videoguard", "ND", True ),
 	( "0xe00",  "0xeff", "PowerVu",        "PV", True ),
-	("0x4a30", "0x4a30", "DVN JET",        "TB", True ),
+	("0x4a30", "0x4a30", "DVN-JET",        "TB", True ),
 	("0x4ad2", "0x4ad3", "STREAMGUARD",    "SM", True ),
 	("0x4a02", "0x4a02", "TONGFANG",       "TF", True )
 )
@@ -103,9 +103,9 @@ class PliExtraInfo(Poll, Converter, object):
 			("CryptoCaidDreSelected",       "DC",	True ),
 			("CryptoCaidNDSSelected",       "ND",	True ),
 			("CryptoCaidPowerVuSelected",   "PV",	True ),
-			("CryptoCaidDvnAvailable",      "TB",	True ),
-			("CryptoCaidSmsxAvailable",     "SM",	True ),
-			("CryptoCaidTongfangAvailable", "TF",	True ),
+			("CryptoCaidDvnSelected",       "TB",	True ),
+			("CryptoCaidSmsxSelected",      "SM",	True ),
+			("CryptoCaidTongfangSelected",  "TF",	True ),
 		)
 		self.ecmdata = GetEcmInfo()
 		self.feraw = self.fedata = self.updateFEdata = None
