@@ -425,15 +425,6 @@ msgstr "<最后一个定时器位置>"
 msgid "<unknown>"
 msgstr "<未知>"
 
-msgid "DVN JET"
-msgstr "天柏"
-
-msgid "STREAMGUARD"
-msgstr "数码视讯"
-
-msgid "TONGFANG"
-msgstr "同方"
-
 msgid "??"
 msgstr "??"
 
@@ -2520,6 +2511,9 @@ msgstr "DVD播放机"
 
 msgid "DVD titlelist"
 msgstr "DVD标题列表"
+
+msgid "DVN-JET"
+msgstr "天柏"
 
 msgid "Daily"
 msgstr "日常"
@@ -6696,6 +6690,9 @@ msgstr "SPDIF"
 msgid "SSID:"
 msgstr "SSID:"
 
+msgid "STREAMGUARD"
+msgstr "数码视讯"
+
 msgid "Samba Setup"
 msgstr "Samba 设置"
 
@@ -8272,6 +8269,9 @@ msgstr "系统: "
 
 msgid "TB"
 msgstr "TB"
+
+msgid "TONGFANG"
+msgstr "同方"
 
 msgid "TS file is too large for ISO9660 level 1!"
 msgstr "TS文件对于ISO9660第1级来说太大了！"
