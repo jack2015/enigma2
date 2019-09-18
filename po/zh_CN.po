@@ -2512,7 +2512,7 @@ msgstr "DVD播放机"
 msgid "DVD titlelist"
 msgstr "DVD标题列表"
 
-msgid "DVN-JET"
+msgid "Cndvnjet"
 msgstr "天柏"
 
 msgid "Daily"
@@ -6690,7 +6690,7 @@ msgstr "SPDIF"
 msgid "SSID:"
 msgstr "SSID:"
 
-msgid "STREAMGUARD"
+msgid "Cnsmsx"
 msgstr "数码视讯"
 
 msgid "Samba Setup"
@@ -8270,7 +8270,7 @@ msgstr "系统: "
 msgid "TB"
 msgstr "TB"
 
-msgid "TONGFANG"
+msgid "Cntongfang"
 msgstr "同方"
 
 msgid "TS file is too large for ISO9660 level 1!"
