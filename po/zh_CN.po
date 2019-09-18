@@ -3877,7 +3877,7 @@ msgid "Home"
 msgstr "首页"
 
 msgid "Hops:"
-msgstr "步骤："
+msgstr "跳数："
 
 msgid "Horizontal"
 msgstr "水平"
@@ -4768,7 +4768,7 @@ msgid "Monthly"
 msgstr "月"
 
 msgid "Mosquito noise reduction"
-msgstr "蚊子噪声减少"
+msgstr "蚊式降噪"
 
 msgid "Motor command retries"
 msgstr "电机命令重试"
@@ -9373,6 +9373,12 @@ msgstr "用户界面"
 
 msgid "User defined"
 msgstr "用户自定义"
+
+msgid "SCPC optimized search range"
+msgstr "SCPC优化搜索范围"
+
+msgid "Include CI assignment"
+msgstr "包括CI任务"
 
 msgid "User defined transponder"
 msgstr "用户定义的转发器"

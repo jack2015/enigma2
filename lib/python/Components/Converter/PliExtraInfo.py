@@ -10,24 +10,24 @@ from Tools.GetEcmInfo import GetEcmInfo
 from Poll import Poll
 
 caid_data = (
-	("0x1700", "0x17ff", "BetaCrypt",      "B",  True ),
-	( "0x600",  "0x6ff", "Irdeto",         "I",  True ),
-	("0x1800", "0x18ff", "Nagravision",    "N",  True ),
-	( "0x100",  "0x1ff", "Seca Mediaguard","S",  True ),
-	("0x1000", "0x10FF", "Tandberg",       "T",  False),
-	( "0x500",  "0x5ff", "Viaccess",       "V",  True ),
-	("0x2600", "0x2600", "Biss",           "BI", False),
-	("0x4aee", "0x4aee", "BulCrypt",       "BU", False),
-	("0x5581", "0x5581", "BulCrypt",       "BU", False),
-	( "0xb00",  "0xbff", "Conax",          "CO", True ),
-	( "0xd00",  "0xdff", "CryptoWorks",    "CW", True ),
-	("0x2700", "0x2710", "DRE-Crypt3",     "DC", False),
-	("0x4ae0", "0x4ae1", "DRE-Crypt",      "DC", True ),
-	( "0x900",  "0x9ff", "NDS Videoguard", "ND", True ),
-	( "0xe00",  "0xeff", "PowerVu",        "PV", True ),
-	("0x4a30", "0x4a30", _("DVN-JET"),     "TB", True ),
-	("0x4ad2", "0x4ad3", _("STREAMGUARD"), "SM", True ),
-	("0x4a02", "0x4a02", _("TONGFANG"),    "TF", True )
+	("0x1700", "0x17ff", _("BetaCrypt"),       "B",  True ),
+	( "0x600",  "0x6ff", _("Irdeto"),          "I",  True ),
+	("0x1800", "0x18ff", _("Nagravision"),     "N",  True ),
+	( "0x100",  "0x1ff", _("Seca Mediaguard"), "S",  True ),
+	("0x1000", "0x10FF", _("Tandberg"),        "T",  False),
+	( "0x500",  "0x5ff", _("Viaccess"),        "V",  True ),
+	("0x2600", "0x2600", _("Biss"),            "BI", False),
+	("0x4aee", "0x4aee", _("BulCrypt"),        "BU", False),
+	("0x5581", "0x5581", _("BulCrypt"),        "BU", False),
+	( "0xb00",  "0xbff", _("Conax"),           "CO", True ),
+	( "0xd00",  "0xdff", _("CryptoWorks"),     "CW", True ),
+	("0x2700", "0x2710", _("DRE-Crypt3"),      "DC", False),
+	("0x4ae0", "0x4ae1", _("DRE-Crypt"),       "DC", True ),
+	( "0x900",  "0x9ff", _("NDS Videoguard"),  "ND", True ),
+	( "0xe00",  "0xeff", _("PowerVu"),         "PV", True ),
+	("0x4a30", "0x4a30", _("DVN-JET"),         "TB", True ),
+	("0x4ad2", "0x4ad3", _("STREAMGUARD"),     "SM", True ),
+	("0x4a02", "0x4a02", _("TONGFANG"),        "TF", True )
 )
 
 # stream type to codec map
