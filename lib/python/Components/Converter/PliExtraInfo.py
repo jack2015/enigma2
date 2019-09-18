@@ -155,12 +155,6 @@ class PliExtraInfo(Poll, Converter, object):
 				if int(caid_entry[0], 16) <= int(self.current_caid, 16) <= int(caid_entry[1], 16):
 					caid_name = caid_entry[2]
 					break
-			if caid_name == "STREAMGUARD":
-				caid_name = "Cnsmsx"
-			if caid_name == "TONGFANG":
-				caid_name = "Cntongfang"
-			if caid_name == "DVN-JET":
-				caid_name = "Cndvnjet"
 			return caid_name + ":%04x:%04x:%04x" % (int(self.current_caid,16), int(self.current_provid,16), info.getInfo(iServiceInformation.sSID))
 		except:
 			pass
@@ -175,12 +169,6 @@ class PliExtraInfo(Poll, Converter, object):
 				if int(caid_entry[0], 16) <= int(self.current_caid, 16) <= int(caid_entry[1], 16):
 					caid_name = caid_entry[2]
 					break
-			if caid_name == "STREAMGUARD":
-				caid_name = "Cnsmsx"
-			if caid_name == "TONGFANG":
-				caid_name = "Cntongfang"
-			if caid_name == "DVN-JET":
-				caid_name = "Cndvnjet"
 			return caid_name + ":%04x" % (int(self.current_caid,16))
 		except:
 			pass
