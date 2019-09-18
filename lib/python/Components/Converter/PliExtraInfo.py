@@ -24,10 +24,10 @@ caid_data = (
 	("0x2700", "0x2710", "DRE-Crypt3",     "DC", False),
 	("0x4ae0", "0x4ae1", "DRE-Crypt",      "DC", True ),
 	( "0x900",  "0x9ff", "NDS Videoguard", "ND", True ),
+	( "0xe00",  "0xeff", "PowerVu",        "PV", True ),
 	("0x4a30", "0x4a30", "DVN JET",        "TB", True ),
 	("0x4ad2", "0x4ad3", "STREAMGUARD",    "SM", True ),
-	("0x4a02", "0x4a02", "TONGFANG",       "TF", True ),
-	( "0xe00",  "0xeff", "PowerVu",        "PV", True )
+	("0x4a02", "0x4a02", "TONGFANG",       "TF", True )
 )
 
 # stream type to codec map
@@ -85,6 +85,9 @@ class PliExtraInfo(Poll, Converter, object):
 			("CryptoCaidDreAvailable",      "DC",	False),
 			("CryptoCaidNDSAvailable",      "ND",	False),
 			("CryptoCaidPowerVuAvailable",  "PV",	False),
+			("CryptoCaidDvnAvailable",      "TB",	False),
+			("CryptoCaidSmsxAvailable",     "SM",	False),
+			("CryptoCaidTongfangAvailable", "TF",	False),
 			("CryptoCaidBetaSelected",      "B",	True ),
 			("CryptoCaidIrdetoSelected",    "I",	True ),
 			("CryptoCaidNagraSelected",     "N",	True ),
@@ -100,6 +103,9 @@ class PliExtraInfo(Poll, Converter, object):
 			("CryptoCaidDreSelected",       "DC",	True ),
 			("CryptoCaidNDSSelected",       "ND",	True ),
 			("CryptoCaidPowerVuSelected",   "PV",	True ),
+			("CryptoCaidDvnAvailable",      "TB",	True ),
+			("CryptoCaidSmsxAvailable",     "SM",	True ),
+			("CryptoCaidTongfangAvailable", "TF",	True ),
 		)
 		self.ecmdata = GetEcmInfo()
 		self.feraw = self.fedata = self.updateFEdata = None

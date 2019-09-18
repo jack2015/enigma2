@@ -425,6 +425,15 @@ msgstr "<最后一个定时器位置>"
 msgid "<unknown>"
 msgstr "<未知>"
 
+msgid "DVN JET"
+msgstr "天柏"
+
+msgid "STREAMGUARD"
+msgstr "数码视讯"
+
+msgid "TONGFANG"
+msgstr "同方"
+
 msgid "??"
 msgstr "??"
 
@@ -11439,12 +11448,3 @@ msgstr "开关和记录"
 
 msgid "zapped"
 msgstr "转向"
-
-msgid "DVN JET"
-msgstr "天柏"
-
-msgid "STREAMGUARD"
-msgstr "数码视讯"
-
-msgid "TONGFANG"
-msgstr "同方"
