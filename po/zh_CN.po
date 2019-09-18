@@ -11439,3 +11439,12 @@ msgstr "开关和记录"
 
 msgid "zapped"
 msgstr "转向"
+
+msgid "DVN JET"
+msgstr "天柏"
+
+msgid "STREAMGUARD"
+msgstr "数码视讯"
+
+msgid "TONGFANG"
+msgstr "同方"
