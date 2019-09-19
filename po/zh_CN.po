@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-09-18 06:38+0000\n"
-"PO-Revision-Date: 2019-09-19 12:20+0800\n"
+"PO-Revision-Date: 2019-09-19 18:53+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -581,7 +581,7 @@ msgid "AAC+ downmix"
 msgstr "AAC+音频缩混"
 
 msgid "AC3 downmix"
-msgstr "AC3 解码"
+msgstr "AC3音频缩混"
 
 msgid "AC3 transcoding"
 msgstr "AC3转码"
@@ -6499,13 +6499,13 @@ msgid "Papua New Guinea"
 msgstr ""
 
 msgid "Paraguay"
-msgstr ""
+msgstr "巴拉圭"
 
 msgid "Parent directory"
 msgstr "父目录"
 
 msgid "Parental Guidance Recommended"
-msgstr ""
+msgstr "建议家长指导"
 
 msgid "Parental control"
 msgstr "家长控制"
@@ -8825,7 +8825,7 @@ msgid "Side by side"
 msgstr "并排"
 
 msgid "Sierra Leone"
-msgstr ""
+msgstr "塞拉利昂"
 
 msgid "Signal OK, proceeding"
 msgstr "信号OK，继续"
@@ -11826,7 +11826,7 @@ msgid "bc%d"
 msgstr ""
 
 msgid "because of the used filesystem the backup\n"
-msgstr ""
+msgstr "由于使用了文件系统备份\n"
 
 msgid "better"
 msgstr "更好的"
@@ -11853,7 +11853,7 @@ msgid "by date"
 msgstr "按日期"
 
 msgid "caid:"
-msgstr ""
+msgstr "卡："
 
 msgid "card"
 msgstr "卡"
@@ -11889,7 +11889,7 @@ msgid "circular right"
 msgstr "圆极化 右"
 
 msgid "clip overscan / letterbox borders"
-msgstr ""
+msgstr "修剪过扫 / 信箱边框"
 
 msgid "close share view"
 msgstr "关闭分享视图"
@@ -11910,18 +11910,20 @@ msgid ""
 "contain a file with the name: \n"
 "\n"
 msgstr ""
+"包含文件的名字为： \n"
+"\n"
 
 msgid "controlled by HDMI"
-msgstr ""
+msgstr "由HDMI控制"
 
 msgid "convert to AC3"
-msgstr ""
+msgstr "转换为AC3"
 
 msgid "convert to DTS"
-msgstr ""
+msgstr "转换为DTS"
 
 msgid "convert to multi-channel PCM"
-msgstr ""
+msgstr "转换为多通道 PCM"
 
 msgid "cooking"
 msgstr "烹饪"
@@ -12914,10 +12916,10 @@ msgid "width"
 msgstr "宽度"
 
 msgid "will take between 1 and 4 minutes for this system\n"
-msgstr ""
+msgstr "这个系统需要1到4分钟\n"
 
 msgid "will take between 3 and 12 minutes for this system\n"
-msgstr ""
+msgstr "这个系统需要3到12分钟\n"
 
 msgid "winter sport"
 msgstr "冬季运动"
@@ -14412,7 +14414,7 @@ msgid ""
 msgstr "服务可能会分组在自定义组中。 启用后，您可以使用多个用户组."
 
 msgid "Set CI assignment for detection of available services."
-msgstr ""
+msgstr "设置用于检测可用服务的CI分配。"
 
 msgid "Set Framerate for MiniTV"
 msgstr "为迷你电视设置帧率"
