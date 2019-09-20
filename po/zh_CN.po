@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-09-18 06:38+0000\n"
-"PO-Revision-Date: 2019-09-20 06:08+0800\n"
+"PO-Revision-Date: 2019-09-20 08:04+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1708,7 +1708,7 @@ msgstr "CI分配"
 
 #, python-format
 msgid "CPU:\t%s %s %s\n"
-msgstr ""
+msgstr "CPU：\t%s %s %s\n"
 
 #, python-format
 msgid "CPU: %s"
@@ -3158,7 +3158,7 @@ msgstr ""
 
 #, python-format
 msgid "E2 (re)starts:\t%s\n"
-msgstr "E2 启动(重启):\t%s\n"
+msgstr "E2 启动(重启)：\t%s 次\n"
 
 msgid "ECM Info"
 msgstr "ECM信息"
@@ -3218,7 +3218,7 @@ msgid "Easter Island"
 msgstr "复活节岛"
 
 msgid "Ecm Info not available."
-msgstr "Ecm info不可用。"
+msgstr "Ecm Info不可用。"
 
 msgid "Ecm:"
 msgstr ""
@@ -3776,7 +3776,7 @@ msgstr ""
 
 #, python-format
 msgid "FP version:\t%s"
-msgstr "FP版本:\t%s"
+msgstr "FP版本：\t%s"
 
 msgid "FSBL Update Check"
 msgstr ""
@@ -4059,7 +4059,7 @@ msgstr ""
 
 #, python-format
 msgid "GStreamer:\t%s\n"
-msgstr "媒体框架:\t%s\n"
+msgstr "媒体框架：\t%s\n"
 
 msgid ""
 "GUI needs a restart to apply a new language\n"
@@ -4604,7 +4604,7 @@ msgstr "图像管理"
 
 #, python-format
 msgid "Image:\t%s.%s%s (%s)\n"
-msgstr "图像:\t%s.%s%s (%s)\n"
+msgstr "图像：\t%s.%s%s (%s)\n"
 
 msgid "Immediate shutdown"
 msgstr "立即关机"
@@ -4755,7 +4755,7 @@ msgstr "安装完成。"
 
 #, python-format
 msgid "Installed:\t%s\n"
-msgstr "安装:\t%s\n"
+msgstr "安装：\t%s\n"
 
 msgid "Installing"
 msgstr "安装"
@@ -4943,7 +4943,7 @@ msgstr ""
 
 #, python-format
 msgid "Kernel:\t%s\n"
-msgstr "内核:\t%s\n"
+msgstr "内核：\t%s\n"
 
 #, python-format
 msgid "Kernel: %s"
@@ -5011,7 +5011,7 @@ msgstr "最后的速度"
 
 #, python-format
 msgid "Last update:\t%s"
-msgstr "最后更新:\t%s"
+msgstr "最后更新：\t%s"
 
 #, python-format
 msgid "Last update:\t%s\n"
@@ -8901,7 +8901,7 @@ msgstr "皮肤设置"
 
 #, python-format
 msgid "Skin:\t%s"
-msgstr "皮肤:\t%s"
+msgstr "皮肤：\t%s"
 
 msgid "Skins"
 msgstr "皮肤"
@@ -9532,7 +9532,7 @@ msgstr "系统与调制"
 
 #, python-format
 msgid "System temp:\t%s"
-msgstr "系统温度:\t%s"
+msgstr "系统温度：\t%s"
 
 #, python-format
 msgid "System temperature: %s"
