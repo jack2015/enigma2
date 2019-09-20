@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-09-18 06:38+0000\n"
-"PO-Revision-Date: 2019-09-20 08:04+0800\n"
+"PO-Revision-Date: 2019-09-20 11:32+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -77,7 +77,7 @@ msgid ""
 "Partition scheme:\n"
 msgstr ""
 "\n"
-"分区方案：\n"
+"分区方案:\n"
 
 msgid ""
 "\n"
@@ -145,7 +145,7 @@ msgid ""
 "Are you sure you want to format this device?\n"
 msgstr ""
 "\n"
-"警告：所有数据将丢失。\n"
+"警告:所有数据将丢失。\n"
 "确定格式化该存储设备吗?\n"
 
 msgid ""
@@ -195,8 +195,8 @@ msgid ""
 " device: %s  size: %s\n"
 " mountpoint: %s"
 msgstr ""
-" 设备： %s  大小： %s\n"
-"装入点： %s"
+" 设备: %s  大小: %s\n"
+"装入点: %s"
 
 msgid "!! Bootloader Upgrade !!"
 msgstr "!! 引导程序更新 !!"
@@ -332,7 +332,7 @@ msgid "(Radio)"
 msgstr "(广播)"
 
 msgid "(Show only reader:"
-msgstr "(只显示读者："
+msgstr "(只显示读者:"
 
 msgid "(You are currently using a temporary sort method)"
 msgstr "（您当前正在使用临时排序方法）"
@@ -624,7 +624,7 @@ msgid "Accept the current selection"
 msgstr "接受当前选择"
 
 msgid "Accesspoint:"
-msgstr "接入点："
+msgstr "接入点:"
 
 msgid "Activate"
 msgstr "激活"
@@ -881,7 +881,7 @@ msgid "Alias"
 msgstr "别名"
 
 msgid "Alias:"
-msgstr "别名："
+msgstr "别名:"
 
 msgid "All"
 msgstr "所有"
@@ -1066,13 +1066,13 @@ msgid "Are you sure you want to delete the EPG data from:\n"
 msgstr "您确定要从中删除EPG数据:\n"
 
 msgid "Are you sure you want to delete this log:\n"
-msgstr "您确定要删除此日志吗？:\n"
+msgstr "您确定要删除此日志吗？\n"
 
 msgid ""
 "Are you sure you want to delete this:\n"
 " "
 msgstr ""
-"你确定要删除这个吗？:\n"
+"你确定要删除这个吗？\n"
 " "
 
 msgid "Are you sure you want to exit this wizard?"
@@ -1155,7 +1155,7 @@ msgid "Ask user (with default as 'yes')"
 msgstr "询问用户（默认为“是”）"
 
 msgid "Aspect Ratio: "
-msgstr "宽高比： "
+msgstr "屏幕宽高比: "
 
 msgid "Aspect ratio"
 msgstr "宽高比"
@@ -1164,10 +1164,10 @@ msgid "Assigned CAIds:"
 msgstr "分配 CAID:"
 
 msgid "Assigned services/provider:"
-msgstr "分配服务/提供者："
+msgstr "分配服务/提供者:"
 
 msgid "At End:"
-msgstr "结束："
+msgstr "结束:"
 
 msgid "Attention, this is repeated timer!\n"
 msgstr "注意，这是重复定时器！\n"
@@ -1288,7 +1288,7 @@ msgid "Autotimer overview"
 msgstr "自动定时器概述"
 
 msgid "Available Forums:   \t"
-msgstr "可用论坛：   \t"
+msgstr "可用论坛:   \t"
 
 msgid "Available format variables"
 msgstr "可用的格式变量"
@@ -1298,7 +1298,7 @@ msgid "Available locales are:"
 msgstr ""
 
 msgid "Available shares:"
-msgstr "可供选择："
+msgstr "可供选择:"
 
 msgid "Azerbaijan"
 msgstr "阿塞拜疆"
@@ -1460,13 +1460,13 @@ msgid "Biss"
 msgstr ""
 
 msgid "Bitrate:"
-msgstr "比特率："
+msgstr "码率:"
 
 msgid "Black"
 msgstr "黑色"
 
 msgid "Black Hole E2 Script: "
-msgstr "黑洞固件脚本： "
+msgstr "黑洞固件脚本: "
 
 msgid "Black Hole Feeds Plugins"
 msgstr "黑洞提供插件"
@@ -1482,9 +1482,12 @@ msgid ""
 "\n"
 "_____________________________________\n"
 msgstr ""
+"黑洞固件统计:\n"
+"\n"
+"_____________________________________\n"
 
 msgid "Black Hole Preview: click ok to exit"
-msgstr ""
+msgstr "黑洞预览：单击“OK”退出"
 
 msgid "Black Hole Settings"
 msgstr "黑洞设置"
@@ -1555,7 +1558,7 @@ msgid "Bouvet Island"
 msgstr ""
 
 msgid "Brand:"
-msgstr ""
+msgstr "品牌:"
 
 msgid "Brazil"
 msgstr ""
@@ -1574,11 +1577,11 @@ msgid "Buffering %d%%"
 msgstr "缓冲 %d%%"
 
 msgid "Buffers:"
-msgstr "缓冲区："
+msgstr "缓冲区:"
 
 #, python-format
 msgid "Build: %s"
-msgstr "建立: %s"
+msgstr "创建: %s"
 
 msgid "BulCrypt"
 msgstr ""
@@ -1631,10 +1634,10 @@ msgid "Bypass HDMI EDID Check"
 msgstr "旁路HDMI EDID检查"
 
 msgid "Bytes received:"
-msgstr "接收的字节数："
+msgstr "接收的字节数:"
 
 msgid "Bytes sent:"
-msgstr "发送的字节数："
+msgstr "发送的字节数:"
 
 msgid "C-Band"
 msgstr "C-波段"
@@ -1708,7 +1711,7 @@ msgstr "CI分配"
 
 #, python-format
 msgid "CPU:\t%s %s %s\n"
-msgstr "CPU：\t%s %s %s\n"
+msgstr "CPU:\t%s %s %s\n"
 
 #, python-format
 msgid "CPU: %s"
@@ -1733,7 +1736,7 @@ msgid "Cache thumbnails"
 msgstr "缓存缩略图"
 
 msgid "Cached:"
-msgstr "缓存："
+msgstr "缓存:"
 
 msgid "Calculate"
 msgstr "计算"
@@ -1908,7 +1911,7 @@ msgid "Chapter"
 msgstr "章"
 
 msgid "Chapter:"
-msgstr "章："
+msgstr "章:"
 
 msgid "Chatham Islands"
 msgstr "查塔姆群岛"
@@ -1952,15 +1955,15 @@ msgstr "中国"
 
 #, python-format
 msgid "Chipset:\t%s\n"
-msgstr "芯片组：\t%s\n"
+msgstr "芯片组:\t%s\n"
 
 #, python-format
 msgid "Chipset:\tBroadcom %s\n"
-msgstr "芯片组：\t博通 %s\n"
+msgstr "芯片组:\t博通 %s\n"
 
 #, python-format
 msgid "Chipset:\tHiSilicon %s\n"
-msgstr "芯片组：\t海思 %s\n"
+msgstr "芯片组:\t海思 %s\n"
 
 #, python-format
 msgid "Chipset: BCM%s"
@@ -2060,7 +2063,7 @@ msgstr "清除播放列表"
 
 #, python-format
 msgid "Client Info ( Oscam-Version: %s )"
-msgstr "客户端信息（OSCAM版本：%s）"
+msgstr "客户端信息（OSCAM版本:%s）"
 
 msgid "Client mode"
 msgstr "客户端模式"
@@ -2460,7 +2463,7 @@ msgid "Current Event:"
 msgstr "当前的事件:"
 
 msgid "Current Status:"
-msgstr "当前状态："
+msgstr "当前状态:"
 
 msgid "Current device: "
 msgstr "当前设备: "
@@ -2470,13 +2473,13 @@ msgid "Current mode: %s \n"
 msgstr "当前模式: %s \n"
 
 msgid "Current rotor position: "
-msgstr "转子的当前位置: "
+msgstr "当前马达位置: "
 
 msgid "Current settings:"
-msgstr "当前设置："
+msgstr "当前设置:"
 
 msgid "Current status:"
-msgstr "当前状态："
+msgstr "当前状态:"
 
 msgid "Current time"
 msgstr "当前时间"
@@ -2488,7 +2491,7 @@ msgid "Current value: "
 msgstr "电流值: "
 
 msgid "Current version:"
-msgstr "当前版本："
+msgstr "当前版本:"
 
 msgid "Custom"
 msgstr "用户自定义"
@@ -2536,11 +2539,11 @@ msgstr ""
 "\n"
 "此测试检查您的LAN适配器是否设置为使用DHCP自动配置IP地址。\n"
 "\n"
-"如果收到“禁用”消息：\n"
+"如果收到“禁用”消息:\n"
 "-您的LAN适配器已配置为手动IP设置。\n"
 "-确认您在适配器设置对话框中输入了正确的IP信息。\n"
 "\n"
-"如果收到“启用”消息：\n"
+"如果收到“启用”消息:\n"
 "-请验证您的网络中是否有已配置且正在运行的DHCP服务器。"
 
 msgid "DLNA support"
@@ -2702,7 +2705,7 @@ msgid "Delay after voltage change before motor command"
 msgstr "电机指令前电压变化后延时"
 
 msgid "Delay before key repeat starts:"
-msgstr "键重复开始之前的延迟："
+msgstr "键重复开始之前的延迟:"
 
 msgid "Delay before sequence repeat"
 msgstr "序列重复延迟"
@@ -2717,7 +2720,7 @@ msgid "Delay time"
 msgstr "延迟时间"
 
 msgid "Delay:"
-msgstr "延迟："
+msgstr "延迟:"
 
 msgid "Delete"
 msgstr "删除"
@@ -2794,10 +2797,10 @@ msgid "Details for plugin: "
 msgstr "插件的详细信息: "
 
 msgid "Detected devices:"
-msgstr "检测到的设备："
+msgstr "检测到的设备:"
 
 msgid "Detected tuners:"
-msgstr "检测到的调谐器："
+msgstr "检测到的调谐器:"
 
 msgid "Device"
 msgstr "设备"
@@ -2809,7 +2812,7 @@ msgid "Device: "
 msgstr "设备: "
 
 msgid "Devicename:"
-msgstr "设备名称："
+msgstr "设备名称:"
 
 msgid "Devices"
 msgstr "设备"
@@ -3016,7 +3019,7 @@ msgid ""
 "Do you want to install the Addon:\n"
 " "
 msgstr ""
-"是否要安装加载项：\n"
+"是否要安装加载项:\n"
 " "
 
 msgid "Do you want to install the package:\n"
@@ -3130,15 +3133,15 @@ msgstr "剧集"
 
 #, python-format
 msgid "Drivers:\t%s"
-msgstr "驱动：\t%s"
+msgstr "驱动:\t%s"
 
 #, python-format
 msgid "Drivers:\t%s\n"
-msgstr "驱动：\t%s\n"
+msgstr "驱动:\t%s\n"
 
 #, python-format
 msgid "Drivers: %s"
-msgstr "驱动：%s"
+msgstr "驱动:%s"
 
 #| msgid "Connected satellites"
 msgid "Drop unconfigured satellites"
@@ -3158,7 +3161,7 @@ msgstr ""
 
 #, python-format
 msgid "E2 (re)starts:\t%s\n"
-msgstr "E2 启动(重启)：\t%s 次\n"
+msgstr "E2 启动(重启):\t%s 次\n"
 
 msgid "ECM Info"
 msgstr "ECM信息"
@@ -3197,16 +3200,16 @@ msgid ""
 msgstr "正在进行后台更新检查，请等待几分钟，然后重试"
 
 msgid "ERROR: No internet found"
-msgstr "错误：找不到网络"
+msgstr "错误:找不到网络"
 
 msgid "ERROR: No network found"
-msgstr "错误：找不到网络"
+msgstr "错误:找不到网络"
 
 msgid "ERROR: Response 403 Forbidden"
-msgstr "错误：响应403被禁止"
+msgstr "错误:响应403被禁止"
 
 msgid "ERROR: Response 404 Not Found"
-msgstr "错误：未找到响应404"
+msgstr "错误:未找到响应404"
 
 msgid "East"
 msgstr "东"
@@ -3370,7 +3373,7 @@ msgid "Encryption key type"
 msgstr "加密密钥类型"
 
 msgid "Encryption:"
-msgstr "加密："
+msgstr "加密:"
 
 msgid "End"
 msgstr "结束"
@@ -3475,13 +3478,13 @@ msgid "Enter the service pin"
 msgstr "输入服务PIN码"
 
 msgid "Enter the size in Megabytes of the first partition:"
-msgstr "输入第一个分区的大小（兆字节）："
+msgstr "输入第一个分区的大小（兆字节）:"
 
 msgid "Enter the size in Megabytes of the second partition:"
-msgstr "输入第二个分区的大小（兆字节）："
+msgstr "输入第二个分区的大小（兆字节）:"
 
 msgid "Enter the size in Megabytes of the third partition:"
-msgstr "输入第三个分区的大小（兆字节）："
+msgstr "输入第三个分区的大小（兆字节）:"
 
 msgid "Enter the streaming port of the host receiver (normally '8001')."
 msgstr "输入主机接收器的流端口（通常为“8001”）。"
@@ -3605,7 +3608,7 @@ msgid "Execution finished!!"
 msgstr "执行完成！!"
 
 msgid "Execution progress:"
-msgstr "执行进度："
+msgstr "执行进度:"
 
 msgid "Exif"
 msgstr "媒体信息"
@@ -3776,7 +3779,7 @@ msgstr ""
 
 #, python-format
 msgid "FP version:\t%s"
-msgstr "FP版本：\t%s"
+msgstr "FP版本:\t%s"
 
 msgid "FSBL Update Check"
 msgstr ""
@@ -3970,10 +3973,10 @@ msgid "Free memory"
 msgstr "可用内存"
 
 msgid "Free memory:"
-msgstr "可用内存："
+msgstr "可用内存:"
 
 msgid "Free swap:"
-msgstr "自由交换："
+msgstr "自由交换:"
 
 msgid "Free:"
 msgstr "空闲内存:"
@@ -4015,7 +4018,7 @@ msgid "Frequency steps"
 msgstr "频率步长"
 
 msgid "Frequency:"
-msgstr "频率："
+msgstr "频率:"
 
 msgid "Fri"
 msgstr "星期五"
@@ -4024,7 +4027,7 @@ msgid "Friday"
 msgstr "星期五"
 
 msgid "From :"
-msgstr "从："
+msgstr "从:"
 
 msgid "From the BH Team"
 msgstr ""
@@ -4059,7 +4062,7 @@ msgstr ""
 
 #, python-format
 msgid "GStreamer:\t%s\n"
-msgstr "媒体框架：\t%s\n"
+msgstr "媒体框架:\t%s\n"
 
 msgid ""
 "GUI needs a restart to apply a new language\n"
@@ -4418,7 +4421,7 @@ msgid "Hops"
 msgstr "跳数"
 
 msgid "Hops:"
-msgstr "跳数："
+msgstr "跳数:"
 
 msgid "Horizontal"
 msgstr "水平"
@@ -4448,7 +4451,7 @@ msgid "Host receiver streaming port"
 msgstr "主机接收器流端口"
 
 msgid "Hostname:"
-msgstr "主机名："
+msgstr "主机名:"
 
 msgid "Hostname: "
 msgstr "主机名: "
@@ -4604,7 +4607,7 @@ msgstr "图像管理"
 
 #, python-format
 msgid "Image:\t%s.%s%s (%s)\n"
-msgstr "图像：\t%s.%s%s (%s)\n"
+msgstr "图像:\t%s.%s%s (%s)\n"
 
 msgid "Immediate shutdown"
 msgstr "立即关机"
@@ -4643,7 +4646,7 @@ msgid "Increased voltage"
 msgstr "增加电压"
 
 msgid "Index allocated:"
-msgstr "突出显示的号码："
+msgstr "突出显示的号码:"
 
 msgid "India"
 msgstr ""
@@ -4685,7 +4688,7 @@ msgid "Initial signal quality"
 msgstr "初始信号质量"
 
 msgid "Initial signal quality:"
-msgstr "初始信号质量："
+msgstr "初始信号质量:"
 
 msgid "Initialise"
 msgstr "初始化"
@@ -4755,7 +4758,7 @@ msgstr "安装完成。"
 
 #, python-format
 msgid "Installed:\t%s\n"
-msgstr "安装：\t%s\n"
+msgstr "安装:\t%s\n"
 
 msgid "Installing"
 msgstr "安装"
@@ -4806,7 +4809,7 @@ msgid "Internet"
 msgstr "互联网"
 
 msgid "Interval between keys when repeating:"
-msgstr "当重复的键之间的间隔："
+msgstr "当重复的键之间的间隔:"
 
 msgid "Invalid"
 msgstr ""
@@ -4943,7 +4946,7 @@ msgstr ""
 
 #, python-format
 msgid "Kernel:\t%s\n"
-msgstr "内核：\t%s\n"
+msgstr "内核:\t%s\n"
 
 #, python-format
 msgid "Kernel: %s"
@@ -5011,7 +5014,7 @@ msgstr "最后的速度"
 
 #, python-format
 msgid "Last update:\t%s"
-msgstr "最后更新：\t%s"
+msgstr "最后更新:\t%s"
 
 #, python-format
 msgid "Last update:\t%s\n"
@@ -5103,10 +5106,10 @@ msgid "Limits on"
 msgstr "启用限制"
 
 msgid "Link quality:"
-msgstr "链接质量："
+msgstr "链接质量:"
 
 msgid "Link:"
-msgstr "链接："
+msgstr "链接:"
 
 msgid "Linked titles with a DVD menu"
 msgstr "链接的标题与DVD菜单"
@@ -5162,7 +5165,7 @@ msgstr ""
 "\n"
 "此测试检查网络电缆是否连接到LAN适配器。\n"
 "\n"
-"如果收到“Disconnected”（断开连接）消息：\n"
+"如果收到“Disconnected”（断开连接）消息:\n"
 "-确认已连接网络电缆。\n"
 "-确认电缆没有断开。"
 
@@ -5177,7 +5180,7 @@ msgid "Lock ratio"
 msgstr "锁定比率"
 
 msgid "Lock:"
-msgstr "锁定："
+msgstr "锁定:"
 
 msgid "Log"
 msgstr "日志"
@@ -5231,7 +5234,7 @@ msgid "MAC address settings"
 msgstr "MAC地址设置"
 
 msgid "MAC:"
-msgstr "MAC地址："
+msgstr "MAC地址:"
 
 msgid "MB"
 msgstr "MB"
@@ -5460,18 +5463,18 @@ msgid "Model"
 msgstr "机型"
 
 msgid "Model:\t"
-msgstr "机型：\t"
+msgstr "机型:\t"
 
 #, python-format
 msgid "Model:\t%s %s\n"
-msgstr "机型：\t%s %s\n"
+msgstr "机型:\t%s %s\n"
 
 msgid "Model: "
 msgstr "机型: "
 
 #, python-format
 msgid "Model: %s %s\n"
-msgstr "机型：%s %s\n"
+msgstr "机型:%s %s\n"
 
 msgid "Modulation"
 msgstr "调制"
@@ -5720,10 +5723,10 @@ msgid ""
 "\n"
 "Select Yes to continue or No to exit."
 msgstr ""
-"注意：此功能适用于无法在电视/显示器上禁用过扫描的用户。 在使用此功能之前，请"
-"先尝试禁用过扫描。\n"
+"注意:此功能适用于无法在电视/显示器上禁用过扫描的用户。 在使用此功能之前，请先"
+"尝试禁用过扫描。\n"
 "\n"
-"用法：调整屏幕大小和位置设置，使阴影用户界面图层* *覆盖背景中的测试图案。\n"
+"用法:调整屏幕大小和位置设置，使阴影用户界面图层* *覆盖背景中的测试图案。\n"
 "\n"
 "选择是继续，或选择否退出。"
 
@@ -5740,10 +5743,10 @@ msgid "Name"
 msgstr "名称"
 
 msgid "Name:"
-msgstr "名称："
+msgstr "名称:"
 
 msgid "Name: "
-msgstr "名称： "
+msgstr "名称: "
 
 msgid "Nameserver"
 msgstr "域名服务器"
@@ -5762,7 +5765,7 @@ msgstr ""
 "\n"
 "此测试检查已配置的名称服务器。\n"
 "\n"
-"如果收到“未确认”消息：\n"
+"如果收到“未确认”消息:\n"
 "-请检查DHCP服务器、电缆和适配器设置。\n"
 "-如果手动配置名称服务器，请验证“名称服务器”配置中的条目。"
 
@@ -5831,7 +5834,7 @@ msgid "Network scan"
 msgstr "网络扫描"
 
 msgid "Network servers:"
-msgstr "网络服务器："
+msgstr "网络服务器:"
 
 msgid "Network test"
 msgstr "网络测试"
@@ -5843,7 +5846,7 @@ msgid "Network wizard"
 msgstr "网络向导"
 
 msgid "Network:"
-msgstr "网络："
+msgstr "网络:"
 
 msgid "New"
 msgstr "新"
@@ -5864,7 +5867,7 @@ msgid "New timers location"
 msgstr "新的定时器位置"
 
 msgid "New version:"
-msgstr "新版本："
+msgstr "新版本:"
 
 msgid "News"
 msgstr ""
@@ -6375,7 +6378,7 @@ msgstr "Oscam信息 - 主菜单"
 
 #, python-format
 msgid "Oscam Log ( Oscam-Version: %s )"
-msgstr "Oscam日志（Oscam版本：%s）"
+msgstr "Oscam日志（Oscam版本:%s）"
 
 msgid "Osd 3D setup"
 msgstr "Osd 3D设置"
@@ -6723,16 +6726,16 @@ msgid "Please enter a new filename"
 msgstr "请输入新的文件名"
 
 msgid "Please enter a new name:"
-msgstr "请输入新名称："
+msgstr "请输入新名称:"
 
 msgid "Please enter filename (empty = use current date)"
 msgstr "请输入文件名 (空的 = 使用当前日期)"
 
 msgid "Please enter new description:"
-msgstr "请输入新的说明："
+msgstr "请输入新的说明:"
 
 msgid "Please enter new name:"
-msgstr "请输入新名称："
+msgstr "请输入新名称:"
 
 msgid "Please enter the correct pin code"
 msgstr "请输入正确的PIN码"
@@ -6876,7 +6879,7 @@ msgid "Polarisation"
 msgstr "极化"
 
 msgid "Polarisation:"
-msgstr "极化："
+msgstr "极化:"
 
 msgid "Polarization"
 msgstr "极化"
@@ -6903,7 +6906,7 @@ msgid "Port D"
 msgstr "端口 D"
 
 msgid "Port:"
-msgstr "端口："
+msgstr "端口:"
 
 msgid "Portugal"
 msgstr ""
@@ -7080,13 +7083,13 @@ msgstr "处理器"
 
 #, python-format
 msgid "Processor temp:\t%s"
-msgstr "处理器温度：\t%s"
+msgstr "处理器温度:\t%s"
 
 msgid "Profile"
 msgstr "简况"
 
 msgid "Profile: Local box"
-msgstr "简介：本地机顶盒"
+msgstr "简介:本地机顶盒"
 
 msgid "Progress"
 msgstr "进度"
@@ -7143,25 +7146,25 @@ msgid "Protocol"
 msgstr "协议"
 
 msgid "Protocol:"
-msgstr "协议："
+msgstr "协议:"
 
 msgid "Provider"
 msgstr "供应商"
 
 msgid "Provider Name: "
-msgstr "供应商名称： "
+msgstr "供应商名称: "
 
 msgid "Provider: "
-msgstr "供应商： "
+msgstr "供应商: "
 
 msgid "Providers"
 msgstr "供应商"
 
 msgid "Providers:"
-msgstr "供应商："
+msgstr "供应商:"
 
 msgid "Providers: "
-msgstr "供应商： "
+msgstr "供应商: "
 
 msgid "Puerto Rico"
 msgstr ""
@@ -7181,7 +7184,7 @@ msgstr "Python 前端为 /tmp/mmi.socket"
 
 #, python-format
 msgid "Python:\t%s\n"
-msgstr "Python版本：\t%s\n"
+msgstr "Python版本:\t%s\n"
 
 msgid "Qatar"
 msgstr ""
@@ -7502,7 +7505,7 @@ msgid "Rename name and description for new events"
 msgstr "重命名新事件的名称和说明"
 
 msgid "Rename to:"
-msgstr "重命名为："
+msgstr "重命名为:"
 
 #, python-format
 msgid "Renamed %s!"
@@ -7527,7 +7530,7 @@ msgid "Repeats"
 msgstr "重复"
 
 msgid "Required medium type:"
-msgstr "必需介质类型："
+msgstr "必需介质类型:"
 
 msgid "Rereading partition table"
 msgstr "重写分区表"
@@ -7667,7 +7670,7 @@ msgid "Rotor turning speed"
 msgstr "转子转动的速度"
 
 msgid "Rotor: "
-msgstr "转子： "
+msgstr "转子: "
 
 msgid "Run how often ?"
 msgstr "如经常运行？"
@@ -7803,7 +7806,7 @@ msgid "Satellite equipment setup"
 msgstr "卫星设备设置"
 
 msgid "Satellite longitude:"
-msgstr "卫星经度："
+msgstr "卫星经度:"
 
 msgid "Satellites"
 msgstr "卫星"
@@ -8118,10 +8121,10 @@ msgid "Select channel to record from"
 msgstr "选择要录像的频道"
 
 msgid "Select copy destination for:"
-msgstr "选择复制目的地："
+msgstr "选择复制目的地:"
 
 msgid "Select destination for:"
-msgstr "选择目的地："
+msgstr "选择目的地:"
 
 msgid "Select files for backup."
 msgstr "选择要备份的文件。"
@@ -8159,7 +8162,7 @@ msgid "Select movie"
 msgstr "选择电影"
 
 msgid "Select number of partitions:"
-msgstr "选择分区数："
+msgstr "选择分区数:"
 
 msgid "Select provider to add..."
 msgstr "选择要添加的提供者..."
@@ -8174,13 +8177,13 @@ msgid "Select slot"
 msgstr "选择插槽"
 
 msgid "Select sort method:"
-msgstr "选择排序方式："
+msgstr "选择排序方式:"
 
 msgid "Select target folder"
 msgstr "选择目标文件夹"
 
 msgid "Select the Swap File Size:"
-msgstr "选择交换文件大小："
+msgstr "选择交换文件大小:"
 
 msgid ""
 "Select the User Band channel to be assigned to this tuner. This is an index "
@@ -8370,16 +8373,16 @@ msgstr "服务名称"
 
 #, python-format
 msgid "Server Info ( Oscam-Version: %s )"
-msgstr "服务端信息（OSCAM版本：%s）"
+msgstr "服务端信息（OSCAM版本:%s）"
 
 msgid "Server:"
-msgstr "服务器："
+msgstr "服务器:"
 
 msgid "Servers"
 msgstr "服务器"
 
 msgid "Servers:"
-msgstr "服务器："
+msgstr "服务器:"
 
 msgid "Service"
 msgstr "频道"
@@ -8837,7 +8840,7 @@ msgid "Signal quality"
 msgstr "信号质量"
 
 msgid "Signal strength:"
-msgstr "信号强度："
+msgstr "信号强度:"
 
 msgid "Signal: "
 msgstr "信号: "
@@ -8901,7 +8904,7 @@ msgstr "皮肤设置"
 
 #, python-format
 msgid "Skin:\t%s"
-msgstr "皮肤：\t%s"
+msgstr "皮肤:\t%s"
 
 msgid "Skins"
 msgstr "皮肤"
@@ -9116,7 +9119,7 @@ msgid "Sort list to default and exit?"
 msgstr "排序列表默认并退出？"
 
 msgid "Sort list:"
-msgstr "排序列表："
+msgstr "排序列表:"
 
 msgid "Sort plugins list to default?"
 msgstr "将插件列表排序为默认值？"
@@ -9141,7 +9144,7 @@ msgid "South Sudan"
 msgstr ""
 
 msgid "Space used:"
-msgstr "使用空间："
+msgstr "使用空间:"
 
 msgid "Spain"
 msgstr ""
@@ -9159,7 +9162,7 @@ msgid "Special 2"
 msgstr ""
 
 msgid "Speed:"
-msgstr "速度："
+msgstr "速度:"
 
 msgid "Split preview mode"
 msgstr "拆分预览模式"
@@ -9222,7 +9225,7 @@ msgid "Starts in a few seconds"
 msgstr "几秒钟后开始"
 
 msgid "Startup Module:"
-msgstr "启动模块："
+msgstr "启动模块:"
 
 msgid "Status"
 msgstr "状态"
@@ -9261,10 +9264,10 @@ msgid "Stop and delete recording"
 msgstr "停止并删除录像"
 
 msgid "Stop and delete recording:"
-msgstr "停止和删除录像："
+msgstr "停止和删除录像:"
 
 msgid "Stop and delete recordings:"
-msgstr "停止和删除录像："
+msgstr "停止和删除录像:"
 
 msgid "Stop current event and disable future events"
 msgstr "停止当前事件并禁用未来事件"
@@ -9294,10 +9297,10 @@ msgid "Stop recording now"
 msgstr "现在停止录像"
 
 msgid "Stop recording:"
-msgstr "停止录像："
+msgstr "停止录像:"
 
 msgid "Stop recordings:"
-msgstr "停止录像："
+msgstr "停止录像:"
 
 msgid "Stop service on return to movie list"
 msgstr "返回电影列表后停止服务"
@@ -9444,10 +9447,10 @@ msgid ""
 msgstr ""
 
 msgid "Swap status: disabled"
-msgstr "交换空间状态：未启用"
+msgstr "交换空间状态:未启用"
 
 msgid "Swap total:"
-msgstr "总交换空间："
+msgstr "总交换空间:"
 
 msgid "Swaziland"
 msgstr ""
@@ -9513,7 +9516,7 @@ msgid "Symbol rate & FEC"
 msgstr "符号率和FEC"
 
 msgid "Symbolrate:"
-msgstr "符号率："
+msgstr "符号率:"
 
 msgid "Sync failure moving back to origin !"
 msgstr "同步失败，返回到原来的！"
@@ -9532,7 +9535,7 @@ msgstr "系统与调制"
 
 #, python-format
 msgid "System temp:\t%s"
-msgstr "系统温度：\t%s"
+msgstr "系统温度:\t%s"
 
 #, python-format
 msgid "System temperature: %s"
@@ -10057,7 +10060,7 @@ msgstr "此选项设置图像饱和度。"
 msgid ""
 "This option sets the scaler sharpness, used when stretching picture from 4:3 "
 "to 16:9."
-msgstr "此选项设置缩放器清晰度，将图像从4：3拉伸到16：9时使用."
+msgstr "此选项设置缩放器清晰度，将图像从4:3拉伸到16:9时使用."
 
 msgid ""
 "This option sets the surpression of false digital contours, that are the "
@@ -10240,7 +10243,7 @@ msgid "Today"
 msgstr "今天"
 
 msgid "Today Connections:   \t"
-msgstr "今天连接数：   \t"
+msgstr "今天连接数:   \t"
 
 msgid "Toggle Digital downmix..."
 msgstr "切换数字混音..."
@@ -10307,17 +10310,17 @@ msgid "Total Connections:   \t"
 msgstr "总计连接数:   \t"
 
 msgid "Total Downloads:     \t"
-msgstr "总下载：\t"
+msgstr "总下载:\t"
 
 msgid "Total Megabytes Available: \t"
-msgstr "可用的总兆字节数：\t"
+msgstr "可用的总兆字节数:\t"
 
 msgid "Total cards:"
-msgstr "总卡数："
+msgstr "总卡数:"
 
 #, python-format
 msgid "Total clients streaming: %d (%s)"
-msgstr "客户：总流 %d (%s)"
+msgstr "客户:总流 %d (%s)"
 
 msgid "Total handled client ecm's"
 msgstr "处理客户端ecm的总数"
@@ -10326,10 +10329,10 @@ msgid "Total handled client emm's"
 msgstr "处理客户端emm的总数"
 
 msgid "Total memory:"
-msgstr "总内存："
+msgstr "总内存:"
 
 msgid "Total swap:"
-msgstr "总互换："
+msgstr "总互换:"
 
 msgid "Total:"
 msgstr "总内存:"
@@ -10422,16 +10425,16 @@ msgid "Tuner setup"
 msgstr "调谐器设置"
 
 msgid "Tuner status:"
-msgstr "调谐器状态："
+msgstr "调谐器状态:"
 
 msgid "Tuner type"
 msgstr "调谐器类型"
 
 msgid "Tuning info: live values"
-msgstr "调整信息：实时值"
+msgstr "调整信息:实时值"
 
 msgid "Tuning info: settings values"
-msgstr "调整信息：设置值"
+msgstr "调整信息:设置值"
 
 msgid "Tunisia"
 msgstr ""
@@ -10863,7 +10866,7 @@ msgstr "版本: "
 
 #, python-format
 msgid "Version: %s"
-msgstr "版本：%s"
+msgstr "版本:%s"
 
 msgid "Vertical"
 msgstr "垂直"
@@ -10996,7 +10999,7 @@ msgid "Virtual KeyBoard Functions"
 msgstr "虚拟键盘功能"
 
 msgid "Virtual KeyBoard Text:"
-msgstr "虚拟键盘文本："
+msgstr "虚拟键盘文本:"
 
 msgid "Virtual keyboard"
 msgstr "虚拟键盘"
@@ -11087,7 +11090,7 @@ msgid "Warning: If your usb is already connected\n"
 msgstr ""
 
 msgid "Warning: no LNB; using factory defaults."
-msgstr "警告：无LNB; 使用出厂默认值。"
+msgstr "警告:无LNB; 使用出厂默认值。"
 
 msgid "Watch movies..."
 msgstr "看电影..."
@@ -11132,10 +11135,10 @@ msgid ""
 "\n"
 "Select Yes to change these settings or No to skip this step."
 msgstr ""
-"注意：此功能适用于无法在电视/显示器上禁用过扫描的用户。 在使用此功能之前，请"
-"先尝试禁用过扫描。\n"
+"注意:此功能适用于无法在电视/显示器上禁用过扫描的用户。 在使用此功能之前，请先"
+"尝试禁用过扫描。\n"
 "\n"
-"用法：调整屏幕大小和位置设置，使阴影用户界面图层* *覆盖背景中的测试图案。\n"
+"用法:调整屏幕大小和位置设置，使阴影用户界面图层* *覆盖背景中的测试图案。\n"
 "\n"
 "选择是继续，或选择否退出。"
 
@@ -11182,7 +11185,7 @@ msgstr "星期几？"
 msgid ""
 "When enabled, content with an aspect ratio of 4:3 will be stretched to fit "
 "the screen."
-msgstr "启用后，宽高比为4：3的内容将被拉伸以适应屏幕。"
+msgstr "启用后，宽高比为4:3的内容将被拉伸以适应屏幕。"
 
 msgid ""
 "When enabled, deleted recordings are moved to the trash can, instead of "
@@ -11216,12 +11219,12 @@ msgstr "设置后，通过排序键进行的排序更改将是永久的。"
 msgid ""
 "When the content has an aspect ratio of 16:9, choose whether to scale/"
 "stretch the picture."
-msgstr "当内容的宽高比为16：9时，请选择是否缩放/拉伸照片。"
+msgstr "当内容的宽高比为16:9时，请选择是否缩放/拉伸照片。"
 
 msgid ""
 "When the content has an aspect ratio of 4:3, choose whether to scale/stretch "
 "the picture."
-msgstr "当内容的长宽比为4：3时，选择是否缩放/拉伸照片。"
+msgstr "当内容的长宽比为4:3时，选择是否缩放/拉伸照片。"
 
 msgid ""
 "When unset, sort changes will be temporary - just for this view of a "
@@ -11735,7 +11738,7 @@ msgid "add bookmark"
 msgstr "添加书签"
 
 msgid "address:"
-msgstr "地址："
+msgstr "地址:"
 
 msgid "adult movie/drama"
 msgstr "成人电影/戏剧"
@@ -11853,7 +11856,7 @@ msgid "by date"
 msgstr "按日期"
 
 msgid "caid:"
-msgstr "卡："
+msgstr "卡:"
 
 msgid "card"
 msgstr "卡"
@@ -11910,7 +11913,7 @@ msgid ""
 "contain a file with the name: \n"
 "\n"
 msgstr ""
-"包含文件的名字为： \n"
+"包含文件的名字为: \n"
 "\n"
 
 msgid "controlled by HDMI"
@@ -12007,7 +12010,7 @@ msgid "east"
 msgstr "东"
 
 msgid "ecm time:"
-msgstr "ecm时间："
+msgstr "ecm时间:"
 
 msgid "ecm.info"
 msgstr "ecm信息"
@@ -14071,7 +14074,7 @@ msgstr "如果设置为“是”，则在媒体播放期间快速转发或回放
 msgid ""
 "If the text is too long to be displayed on the front panel, it will be "
 "repeated (number of times):"
-msgstr "如果文本太长，无法显示在前面板上，将会重复（次数）："
+msgstr "如果文本太长，无法显示在前面板上，将会重复（次数）:"
 
 msgid "Ignore DVB-C namespace sub network"
 msgstr "忽略DVB-C频率子网络部分"
@@ -14087,7 +14090,7 @@ msgid ""
 "assuming the required channel number has been entered. Default: 5 seconds. "
 "Setting zero will require confirmation with 'OK'. "
 msgstr ""
-"在实时视图中，在按下数字键后等待数秒，假设已输入所需的频道号。默认值：5秒。设"
+"在实时视图中，在按下数字键后等待数秒，假设已输入所需的频道号。默认值:5秒。设"
 "置为零需要用“确定”确认。 "
 
 msgid "In the Standby Record on the LCD Display"
@@ -14386,7 +14389,7 @@ msgid "Seekbar sensibility"
 msgstr "搜索 灵敏度"
 
 msgid "Select how to activate the Quick EPG mode:"
-msgstr "选择如何激活快速EPG模式："
+msgstr "选择如何激活快速EPG模式:"
 
 msgid "Select if timeshift should continue when set to record."
 msgstr "选择当设置为记录时是否应继续时移。"
@@ -14480,7 +14483,7 @@ msgid "Setup your timezone area."
 msgstr "设置您的时区区域。"
 
 msgid "Show CCcam Info in extensions?"
-msgstr "在扩展列表中显示CCcam Info？"
+msgstr "在扩展中显示CCcam Info？"
 
 msgid "Show Display Icons"
 msgstr "在显示屏上显示图标"
