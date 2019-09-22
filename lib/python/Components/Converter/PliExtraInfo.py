@@ -158,7 +158,9 @@ class PliExtraInfo(Poll, Converter, object):
 				if int(caid_entry[0], 16) <= int(self.current_caid, 16) <= int(caid_entry[1], 16):
 					caid_name = caid_entry[2]
 					break
-			return caid_system + caid_name + "@%04x" % (int(self.current_caid,16))
+			caid_num = "%04x" % (int(self.current_caid,16))
+			caid_num = caid_num.upper()
+			return caid_system + caid_name + "@" + caid_num
 		except:
 			pass
 		return ""
