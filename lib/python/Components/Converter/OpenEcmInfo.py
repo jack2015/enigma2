@@ -16,7 +16,7 @@ class OpenEcmInfo(Poll, Converter, object):
 		Converter.__init__(self, type)
 		Poll.__init__(self)
 		self.type = type
-		self.poll_interval = 3000
+		self.poll_interval = 1000
 		self.poll_enabled = False
 		if type == "bitrate":
 			self.type = self.bitrate
@@ -83,7 +83,7 @@ class OpenEcmInfo(Poll, Converter, object):
 			return ""
 			
 		elif self.type == self.bitrate:
-			return "VIDEO: %d kb/s  AUDIO: %d kb/s" % (self.video, self.audio)
+			return _("Viedo:") + str(self.video) + "  " + _("Audio:") + str(self.audio)
 
 		elif self.type == self.vbitrate:
 			return _("Viedo:") + str(self.video)
