@@ -149,19 +149,22 @@ class PliExtraInfo(Poll, Converter, object):
 
 
 	def createCryptoSpecial(self, info):
-		caid_name = "Free to Air"
+		caid_system = _("CA System: ")
+		caid_name = _("FTA")
+		if int(self.current_caid,16) == 0:
+			return caid_system + caid_name
 		try:
 			for caid_entry in caid_data:
 				if int(caid_entry[0], 16) <= int(self.current_caid, 16) <= int(caid_entry[1], 16):
 					caid_name = caid_entry[2]
 					break
-			return caid_name + ":%04x:%04x:%04x" % (int(self.current_caid,16), int(self.current_provid,16), info.getInfo(iServiceInformation.sSID))
+			return caid_system + caid_name + "@%04x" % (int(self.current_caid,16))
 		except:
 			pass
 		return ""
 
 	def createCryptoNameCaid(self, info):
-		caid_name = "Free to Air"
+		caid_name = "FTA"
 		if int(self.current_caid,16) == 0:
 			return caid_name
 		try:

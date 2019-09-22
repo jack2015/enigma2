@@ -132,6 +132,21 @@ msgstr ""
 "\n"
 "计时器 '%s' 未启用!"
 
+msgid "Viedo:"
+msgstr "视频:"
+
+msgid "Audio:"
+msgstr "音频:"
+
+msgid "FTA"
+msgstr "免费"
+
+msgid "CA System: "
+msgstr "智能卡系统: "
+
+msgid "Temp:"
+msgstr "温度:"
+
 msgid ""
 "\n"
 "View, install and remove available or installed packages."
