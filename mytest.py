@@ -11,7 +11,7 @@ profile("PYTHON_START")
 # Don't remove this line. It may seem to do nothing, but if removed,
 # it will break output redirection for crash logs.
 import Tools.RedirectOutput
-from boxbranding import getBrandOEM, getImageVersion, getImageBuild, getImageDevBuild, getImageType
+from boxbranding import getBoxType, getBrandOEM, getImageVersion, getImageBuild, getImageDevBuild, getImageType, getMachineBuild
 print "[Image Type] %s" % getImageType()
 print "[Image Version] %s" % getImageVersion()
 print "[Image Build] %s" % getImageBuild()
@@ -24,6 +24,7 @@ import eBaseImpl
 enigma.eTimer = eBaseImpl.eTimer
 enigma.eSocketNotifier = eBaseImpl.eSocketNotifier
 enigma.eConsoleAppContainer = eConsoleImpl.eConsoleAppContainer
+boxtype = getBoxType()
 
 from traceback import print_exc
 
@@ -62,6 +63,7 @@ from Components.config import config, configfile, ConfigText, ConfigYesNo, Confi
 InitFallbackFiles()
 
 profile("config.misc")
+config.misc.boxtype = ConfigText(default = boxtype)
 config.misc.blackradiopic = ConfigText(default = resolveFilename(SCOPE_ACTIVE_SKIN, "black.mvi"))
 radiopic = resolveFilename(SCOPE_ACTIVE_SKIN, "radio.mvi")
 if os.path.exists(resolveFilename(SCOPE_CONFIG, "radio.mvi")):
@@ -659,6 +661,22 @@ profile("LCD")
 import Components.Lcd
 Components.Lcd.InitLcd()
 Components.Lcd.IconCheck()
+
+if boxtype in ('dm7080', 'dm820', 'dm900', 'dm920', 'gb7252'):
+	f=open("/proc/stb/hdmi-rx/0/hdmi_rx_monitor","r")
+	check=f.read()
+	f.close()
+	if check.startswith("on"):
+		f=open("/proc/stb/hdmi-rx/0/hdmi_rx_monitor","w")
+		f.write("off")
+		f.close()
+	f=open("/proc/stb/audio/hdmi_rx_monitor","r")
+	check=f.read()
+	f.close()
+	if check.startswith("on"):
+		f=open("/proc/stb/audio/hdmi_rx_monitor","w")
+		f.write("off")
+		f.close()
 
 profile("UserInterface")
 import Screens.UserInterfacePositioner
