@@ -1,13 +1,14 @@
 from Components.Converter.Converter import Converter
-from enigma import iServiceInformation, iPlayableService
+from enigma import iServiceInformation, iPlayableService, eServiceReference
 from Screens.InfoBarGenerics import hasActiveSubservicesForCurrentChannel
 from Components.Element import cached
 from Tools.Transponder import ConvertToHumanReadable
+from Poll import Poll
 from os import path
 
-WIDESCREEN = [3, 4, 7, 8, 0xB, 0xC, 0xF, 0x10]
+WIDESCREEN = [1, 3, 4, 7, 8, 0xB, 0xC, 0xF, 0x10]
 
-class ServiceInfo(Converter, object):
+class ServiceInfo(Poll, Converter, object):
 	HAS_TELETEXT = 1
 	IS_MULTICHANNEL = 2
 	AUDIO_STEREO = 3
@@ -49,7 +50,10 @@ class ServiceInfo(Converter, object):
 	IS_HDHDR = 39
 
 	def __init__(self, type):
+		Poll.__init__(self)
 		Converter.__init__(self, type)
+		self.poll_interval = 5000
+		self.poll_enabled = True
 		self.type, self.interesting_events = {
 			"HasTelext": (self.HAS_TELETEXT, (iPlayableService.evUpdatedInfo,)),
 			"IsMultichannel": (self.IS_MULTICHANNEL, (iPlayableService.evUpdatedInfo,)),
@@ -91,6 +95,7 @@ class ServiceInfo(Converter, object):
 			"IsHLG": (self.IS_HLG, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
 			"IsHDHDR": (self.IS_HDHDR, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
 		}[type]
+		self.interesting_events += (iPlayableService.evStart,)
 
 	def getServiceInfoString(self, info, what, convert=lambda x: "%d" % x):
 		v = info.getInfo(what)
