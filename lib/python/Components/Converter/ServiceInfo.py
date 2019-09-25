@@ -1,15 +1,13 @@
 from Components.Converter.Converter import Converter
-from enigma import iServiceInformation, iPlayableService, eServiceReference
+from enigma import iServiceInformation, iPlayableService
 from Screens.InfoBarGenerics import hasActiveSubservicesForCurrentChannel
 from Components.Element import cached
-from Poll import Poll
 from Tools.Transponder import ConvertToHumanReadable
-
 from os import path
 
-WIDESCREEN = [1, 3, 4, 7, 8, 0xB, 0xC, 0xF, 0x10]
+WIDESCREEN = [3, 4, 7, 8, 0xB, 0xC, 0xF, 0x10]
 
-class ServiceInfo(Poll, Converter, object):
+class ServiceInfo(Converter, object):
 	HAS_TELETEXT = 1
 	IS_MULTICHANNEL = 2
 	AUDIO_STEREO = 3
@@ -41,21 +39,17 @@ class ServiceInfo(Poll, Converter, object):
 	IS_576 = 29
 	IS_480 = 30
 	IS_4K = 31
-	IS_IPSTREAM = 32
-	IS_SDR = 33
-	IS_HDR = 34
-	IS_HDR10 = 35
-	IS_HLG = 36
-	IS_HDHDR = 37
-	FREQ_INFO = 38
-	PROGRESSIVE = 39
-	VIDEO_INFO = 40
+	FREQ_INFO = 32
+	PROGRESSIVE = 33
+	VIDEO_INFO = 34
+	IS_SDR = 35
+	IS_HDR = 36
+	IS_HDR10 = 37
+	IS_HLG = 38
+	IS_HDHDR = 39
 
 	def __init__(self, type):
-		Poll.__init__(self)
 		Converter.__init__(self, type)
-		self.poll_interval = 10000
-		self.poll_enabled = True
 		self.type, self.interesting_events = {
 			"HasTelext": (self.HAS_TELETEXT, (iPlayableService.evUpdatedInfo,)),
 			"IsMultichannel": (self.IS_MULTICHANNEL, (iPlayableService.evUpdatedInfo,)),
@@ -74,11 +68,11 @@ class ServiceInfo(Poll, Converter, object):
 			"TsId": (self.TSID, (iPlayableService.evUpdatedInfo,)),
 			"OnId": (self.ONID, (iPlayableService.evUpdatedInfo,)),
 			"Sid": (self.SID, (iPlayableService.evUpdatedInfo,)),
-			"Framerate": (self.FRAMERATE, (iPlayableService.evVideoSizeChanged,iPlayableService.evUpdatedInfo,)),
+			"Framerate": (self.FRAMERATE, (iPlayableService.evVideoFramerateChanged, iPlayableService.evUpdatedInfo,)),
 			"Progressive": (self.PROGRESSIVE, (iPlayableService.evVideoProgressiveChanged, iPlayableService.evUpdatedInfo,)),
 			"VideoInfo": (self.VIDEO_INFO, (iPlayableService.evVideoSizeChanged, iPlayableService.evVideoFramerateChanged, iPlayableService.evVideoProgressiveChanged, iPlayableService.evUpdatedInfo,)),
 			"TransferBPS": (self.TRANSFERBPS, (iPlayableService.evUpdatedInfo,)),
-			"HasHBBTV": (self.HAS_HBBTV, (iPlayableService.evUpdatedInfo,iPlayableService.evHBBTVInfo,)),
+			"HasHBBTV": (self.HAS_HBBTV, (iPlayableService.evUpdatedInfo, iPlayableService.evHBBTVInfo,)),
 			"AudioTracksAvailable": (self.AUDIOTRACKS_AVAILABLE, (iPlayableService.evUpdatedInfo,)),
 			"SubtitlesAvailable": (self.SUBTITLES_AVAILABLE, (iPlayableService.evUpdatedInfo,)),
 			"Freq_Info": (self.FREQ_INFO, (iPlayableService.evUpdatedInfo,)),
@@ -91,32 +85,17 @@ class ServiceInfo(Poll, Converter, object):
 			"Is576": (self.IS_576, (iPlayableService.evVideoSizeChanged,)),
 			"Is480": (self.IS_480, (iPlayableService.evVideoSizeChanged,)),
 			"Is4K": (self.IS_4K, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
-			"IsIPStream": (self.IS_IPSTREAM, (iPlayableService.evUpdatedInfo,)),
 			"IsSDR": (self.IS_SDR, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
 			"IsHDR": (self.IS_HDR, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
 			"IsHDR10": (self.IS_HDR10, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
 			"IsHLG": (self.IS_HLG, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
 			"IsHDHDR": (self.IS_HDHDR, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
 		}[type]
-		self.interesting_events += (iPlayableService.evStart,)
-
-	def _isHDMIIn(self, info):
-		return eServiceReference(info.getInfoString(iServiceInformation.sServiceref)).type == eServiceReference.idServiceHDMIIn
 
 	def getServiceInfoString(self, info, what, convert=lambda x: "%d" % x):
-		if self._isHDMIIn(info):
-			return "N/A"
 		v = info.getInfo(what)
 		if v == -1:
-			return "N/A"
-		if v == -2:
-			return info.getInfoString(what)
-		return convert(v)
-
-	def getServiceInfoHexString(self, info, what, convert = lambda x: "%04x" % x):
-		v = info.getInfo(what)
-		if v == -1:
-			return "N/A"
+			return _("N/A")
 		if v == -2:
 			return info.getInfoString(what)
 		return convert(v)
@@ -134,10 +113,7 @@ class ServiceInfo(Poll, Converter, object):
 		return val
 
 	def _getVal(self, pathname, info, infoVal, base=10):
-		if self._isHDMIIn(info):
-			return None
 		val = self._getProcVal(pathname, base=base)
-
 		return val if val is not None else info.getInfo(infoVal)
 
 	def _getValInt(self, pathname, info, infoVal, base=10, default=-1):
@@ -145,10 +121,7 @@ class ServiceInfo(Poll, Converter, object):
 		return val if val is not None else default
 
 	def _getValStr(self, pathname, info, infoVal, base=10, convert=lambda x: "%d" % x):
-		if self._isHDMIIn(info):
-			return "N/A"
 		val = self._getProcVal(pathname, base=base)
-
 		return convert(val) if val is not None else self.getServiceInfoString(info, infoVal, convert)
 
 	def _getVideoHeight(self, info):
@@ -200,7 +173,6 @@ class ServiceInfo(Poll, Converter, object):
 			video_height = int(info.getInfo(iServiceInformation.sVideoHeight))
 		if not video_aspect:
 			video_aspect = info.getInfo(iServiceInformation.sAspect)
-
 		if self.type == self.HAS_TELETEXT:
 			tpid = info.getInfo(iServiceInformation.sTXTPID)
 			return tpid != -1
@@ -236,7 +208,7 @@ class ServiceInfo(Poll, Converter, object):
 			return info.getInfoString(iServiceInformation.sHBBTVUrl) != ""
 		elif self.type == self.AUDIOTRACKS_AVAILABLE:
 			audio = service.audioTracks()
-			return audio and audio.getNumberOfTracks() > 1
+			return bool(audio) and audio.getNumberOfTracks() > 1
 		elif self.type == self.SUBTITLES_AVAILABLE:
 			subtitle = service and service.subtitle()
 			subtitlelist = subtitle and subtitle.getSubtitleList()
@@ -267,20 +239,16 @@ class ServiceInfo(Poll, Converter, object):
 				return False
 			else:
 				return video_width > 2160 and video_width <= 3840
-		elif self.type == self.IS_IPSTREAM:
-			return service.streamed() is not None
-		elif self.type == self.IS_SDR:
-			return video_width > 2160 and video_width <= 3840 and info.getInfo(iServiceInformation.sGamma) == 0
-		elif self.type == self.IS_HDR:
-			return video_width > 2160 and video_width <= 3840 and info.getInfo(iServiceInformation.sGamma) == 1
-		elif self.type == self.IS_HDR10:
-			return video_width > 2160 and video_width <= 3840 and info.getInfo(iServiceInformation.sGamma) == 2
-		elif self.type == self.IS_HLG:
-			return video_width > 2160 and video_width <= 3840 and info.getInfo(iServiceInformation.sGamma) == 3
-		elif self.type == self.IS_HDHDR:
-			return video_width >= 721 and video_width < 1980 and info.getInfo(iServiceInformation.sGamma) > 0
 		elif self.PROGRESSIVE:
 			return bool(self._getProgressive(info))
+		elif self.type == self.IS_SDR:
+			return info.getInfo(iServiceInformation.sGamma) == 0
+		elif self.type == self.IS_HDR:
+			return info.getInfo(iServiceInformation.sGamma) == 1
+		elif self.type == self.IS_HDR10:
+			return info.getInfo(iServiceInformation.sGamma) == 2
+		elif self.type == self.IS_HLG:
+			return info.getInfo(iServiceInformation.sGamma) == 3
 		return False
 
 	boolean = property(getBoolean)
@@ -291,7 +259,6 @@ class ServiceInfo(Poll, Converter, object):
 		info = service and service.info()
 		if not info:
 			return ""
-
 		if self.type == self.XRES:
 			return self._getVideoWidthStr(info)
 		elif self.type == self.YRES:
@@ -311,7 +278,7 @@ class ServiceInfo(Poll, Converter, object):
 		elif self.type == self.ONID:
 			return self.getServiceInfoString(info, iServiceInformation.sONID)
 		elif self.type == self.SID:
-			return self.getServiceInfoHexString(info, iServiceInformation.sSID)
+			return self.getServiceInfoString(info, iServiceInformation.sSID)
 		elif self.type == self.FRAMERATE:
 			video_rate = None
 			if path.exists("/proc/stb/vmpeg/0/framerate"):
@@ -330,7 +297,7 @@ class ServiceInfo(Poll, Converter, object):
 		elif self.type == self.PROGRESSIVE:
 			return self._getProgressiveStr(info)
 		elif self.type == self.TRANSFERBPS:
-			return self.getServiceInfoString(info, iServiceInformation.sTransferBPS, lambda x: "%d kB/s" % (x/1024))
+			return self.getServiceInfoString(info, iServiceInformation.sTransferBPS, lambda x: "%d kB/s" % (x / 1024))
 		elif self.type == self.HAS_HBBTV:
 			return info.getInfoString(iServiceInformation.sHBBTVUrl)
 		elif self.type == self.FREQ_INFO:
@@ -358,8 +325,6 @@ class ServiceInfo(Poll, Converter, object):
 			out = "Freq: %s %s %s %s %s" % (frequency, polarization, sr_txt, symbolrate, fec)
 			return out
 		elif self.type == self.VIDEO_INFO:
-			if self._isHDMIIn(info):
-					return ""
 			progressive = self._getProgressiveStr(info)
 			fieldrate = self._getFrameRate(info)
 			if fieldrate > 0:
@@ -423,13 +388,4 @@ class ServiceInfo(Poll, Converter, object):
 
 	def changed(self, what):
 		if what[0] != self.CHANGED_SPECIFIC or what[1] in self.interesting_events:
-			# Only want to update on iPlayableService.evStart
-			# if the service is HDMI IN.
-			if len(what) > 1 and what[1] == iPlayableService.evStart:
-				service = self.source.service
-				info = service and service.info()
-				if info and not self._isHDMIIn(info):
-					return
-
 			Converter.changed(self, what)
-
