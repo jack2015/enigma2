@@ -3,7 +3,6 @@ from enigma import iServiceInformation, iPlayableService
 from Screens.InfoBarGenerics import hasActiveSubservicesForCurrentChannel
 from Components.Element import cached
 from Tools.Transponder import ConvertToHumanReadable
-from os import path
 
 WIDESCREEN = [3, 4, 7, 8, 0xB, 0xC, 0xF, 0x10]
 
@@ -42,11 +41,6 @@ class ServiceInfo(Converter, object):
 	FREQ_INFO = 32
 	PROGRESSIVE = 33
 	VIDEO_INFO = 34
-	IS_SDR = 35
-	IS_HDR = 36
-	IS_HDR10 = 37
-	IS_HLG = 38
-	IS_HDHDR = 39
 
 	def __init__(self, type):
 		Converter.__init__(self, type)
@@ -79,17 +73,12 @@ class ServiceInfo(Converter, object):
 			"Editmode": (self.EDITMODE, (iPlayableService.evUpdatedInfo,)),
 			"IsStream": (self.IS_STREAM, (iPlayableService.evUpdatedInfo,)),
 			"IsSD": (self.IS_SD, (iPlayableService.evVideoSizeChanged,)),
-			"IsHD": (self.IS_HD, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
+			"IsHD": (self.IS_HD, (iPlayableService.evVideoSizeChanged,)),
 			"Is1080": (self.IS_1080, (iPlayableService.evVideoSizeChanged,)),
 			"Is720": (self.IS_720, (iPlayableService.evVideoSizeChanged,)),
 			"Is576": (self.IS_576, (iPlayableService.evVideoSizeChanged,)),
 			"Is480": (self.IS_480, (iPlayableService.evVideoSizeChanged,)),
-			"Is4K": (self.IS_4K, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
-			"IsSDR": (self.IS_SDR, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
-			"IsHDR": (self.IS_HDR, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
-			"IsHDR10": (self.IS_HDR10, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
-			"IsHLG": (self.IS_HLG, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
-			"IsHDHDR": (self.IS_HDHDR, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
+			"Is4K": (self.IS_4K, (iPlayableService.evVideoSizeChanged,)),
 		}[type]
 
 	def getServiceInfoString(self, info, what, convert=lambda x: "%d" % x):
@@ -154,25 +143,10 @@ class ServiceInfo(Converter, object):
 		info = service and service.info()
 		if not info:
 			return False
-
 		video_height = None
-		video_width = None
 		video_aspect = None
 		video_height = self._getVideoHeight(info)
-		video_width = self._getVideoWidth(info)
-
-		if path.exists("/proc/stb/vmpeg/0/aspect"):
-			f = open("/proc/stb/vmpeg/0/aspect", "r")
-			try:
-				video_aspect = int(f.read())
-			except:
-				pass
-			f.close()
-
-		if not video_height:
-			video_height = int(info.getInfo(iServiceInformation.sVideoHeight))
-		if not video_aspect:
-			video_aspect = info.getInfo(iServiceInformation.sAspect)
+		video_aspect = info.getInfo(iServiceInformation.sAspect)
 		if self.type == self.HAS_TELETEXT:
 			tpid = info.getInfo(iServiceInformation.sTXTPID)
 			return tpid != -1
@@ -185,7 +159,7 @@ class ServiceInfo(Converter, object):
 				while idx < n:
 					i = audio.getTrackInfo(idx)
 					description = i.getDescription()
-					if description and description.split()[0] in ("AC3", "AC-3", "AC3+", "DTS"): # some audio description has 'audio' as additional value (e.g. 'AC-3 audio')
+					if description in ("AC3", "AC-3", "DTS"):
 						if self.type == self.IS_MULTICHANNEL:
 							return True
 						elif self.type == self.AUDIO_STEREO:
@@ -222,10 +196,7 @@ class ServiceInfo(Converter, object):
 		elif self.type == self.IS_SD:
 			return video_height < 720
 		elif self.type == self.IS_HD:
-			if info.getInfo(iServiceInformation.sGamma) > 0:
-				return False
-			else:
-				return video_width >= 721 and video_width < 1980
+			return video_height >= 720 and video_height < 2160
 		elif self.type == self.IS_1080:
 			return video_height > 1000 and video_height <= 1080
 		elif self.type == self.IS_720:
@@ -234,21 +205,10 @@ class ServiceInfo(Converter, object):
 			return video_height > 500 and video_height <= 576
 		elif self.type == self.IS_480:
 			return video_height > 0 and video_height <= 480
-		elif self.type == self.IS_4K: 
-			if info.getInfo(iServiceInformation.sGamma) > 0:
-				return False
-			else:
-				return video_width > 2160 and video_width <= 3840
+		elif self.type == self.IS_4K:
+			return video_height >= 2100
 		elif self.PROGRESSIVE:
 			return bool(self._getProgressive(info))
-		elif self.type == self.IS_SDR:
-			return info.getInfo(iServiceInformation.sGamma) == 0
-		elif self.type == self.IS_HDR:
-			return info.getInfo(iServiceInformation.sGamma) == 1
-		elif self.type == self.IS_HDR10:
-			return info.getInfo(iServiceInformation.sGamma) == 2
-		elif self.type == self.IS_HLG:
-			return info.getInfo(iServiceInformation.sGamma) == 3
 		return False
 
 	boolean = property(getBoolean)
@@ -280,20 +240,7 @@ class ServiceInfo(Converter, object):
 		elif self.type == self.SID:
 			return self.getServiceInfoString(info, iServiceInformation.sSID)
 		elif self.type == self.FRAMERATE:
-			video_rate = None
-			if path.exists("/proc/stb/vmpeg/0/framerate"):
-				f = open("/proc/stb/vmpeg/0/framerate", "r")
-				try:
-					video_rate = int(f.read())
-				except:
-					pass
-				f.close()
-			if not video_rate:
-				try:
-					video_rate = int(self.getServiceInfoString(info, iServiceInformation.sFrameRate))
-				except:
-					return "N/A fps"
-			return video_rate, lambda x: "%d fps" % ((x+500)/1000)
+			return self._getFrameRateStr(info, convert=lambda x: "%d fps" % ((x + 500) / 1000))
 		elif self.type == self.PROGRESSIVE:
 			return self._getProgressiveStr(info)
 		elif self.type == self.TRANSFERBPS:
@@ -344,44 +291,12 @@ class ServiceInfo(Converter, object):
 		info = service and service.info()
 		if not info:
 			return -1
-
 		if self.type == self.XRES:
-			video_width = None
-			if path.exists("/proc/stb/vmpeg/0/xres"):
-				f = open("/proc/stb/vmpeg/0/xres", "r")
-				try:
-					video_width = int(f.read(),16)
-				except:
-					video_width = None
-				f.close()
-			if not video_width:
-				video_width = info.getInfo(iServiceInformation.sVideoWidth)
-			return str(video_width)
+			return str(self._getVideoWidth(info))
 		elif self.type == self.YRES:
-			video_height = None
-			if path.exists("/proc/stb/vmpeg/0/yres"):
-				f = open("/proc/stb/vmpeg/0/yres", "r")
-				try:
-					video_height = int(f.read(),16)
-				except:
-					video_height = None
-				f.close()
-			if not video_height:
-				video_height = info.getInfo(iServiceInformation.sVideoHeight)
-			return str(video_height)
+			return str(self._getVideoHeight(info))
 		elif self.type == self.FRAMERATE:
-			video_rate = None
-			if path.exists("/proc/stb/vmpeg/0/framerate"):
-				f = open("/proc/stb/vmpeg/0/framerate", "r")
-				try:
-					video_rate = f.read()
-				except:
-					pass
-				f.close()
-			if not video_rate:
-				video_rate = info.getInfo(iServiceInformation.sFrameRate)
-			return str(video_rate)
-
+			return str(self._getFrameRate(self, info))
 		return -1
 
 	value = property(getValue)
