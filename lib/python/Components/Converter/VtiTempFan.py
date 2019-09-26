@@ -43,36 +43,33 @@ class VtiTempFan(Poll, Converter, object):
 		tempinfo = ""
 		if os.path.exists("/proc/stb/sensors/temp0/value"):
 			f = open("/proc/stb/sensors/temp0/value", "r")
-			tempinfo = f.read()
+			tempinfo = str(f.readline().strip())
 			f.close()
 		elif os.path.exists("/proc/stb/fp/temp_sensor"):
 			f = open("/proc/stb/fp/temp_sensor", "r")
-			tempinfo = f.read()
+			tempinfo = str(f.readline().strip())
 			f.close()
 		elif os.path.exists("/proc/stb/sensors/temp/value"):
 			f = open("/proc/stb/sensors/temp/value", "r")
-			tempinfo = f.read()
+			tempinfo = str(f.readline().strip())
 			f.close()
-		if tempinfo and int(tempinfo.replace("\n", "")) > 0:
+		if tempinfo and int(tempinfo) > 0:
 			mark = str("\xc2\xb0")
-			tempinfo = _("Temp:") + tempinfo.replace("\n", "").replace(" ","") + mark + "C"
+			tempinfo = _("Temp:") + tempinfo + mark + "C"
 		return tempinfo
 
 	def fanfile(self):
 		fan = ""
 		if os.path.exists("/proc/stb/fp/fan_speed"):
 			f = open("/proc/stb/fp/fan_speed", "rb")
-			fan = f.readline().strip()
+			fan = str(f.readline().strip())
 			f.close()
-			return str(fan)
-		else:
-			return fan
+		return fan
 
 	def getCamName(self):
 		camnameinfo = ""
 		if os.path.exists("/etc/CurrentBhCamName"):
 			f = open("/etc/CurrentBhCamName", "r")
-			#camnameinfo = f.read().replace("\n", "").replace(" ","").lower()
 			camnameinfo = f.read()
 			f.close()
 			contentInfo = camnameinfo.split('\n')
@@ -108,7 +105,6 @@ class VtiTempFan(Poll, Converter, object):
 			return "OScam"
 		elif os.path.exists("/tmp/cam.info"):
 			f = open("/tmp/cam.info", "r")
-			#camnameinfo = f.read().replace("\n", "").replace(" ","").lower()
 			camnameinfo = f.read()
 			f.close()
 			contentInfo = camnameinfo.split('\n')
@@ -145,4 +141,3 @@ class VtiTempFan(Poll, Converter, object):
 	def changed(self, what):
 		if what[0] == self.CHANGED_POLL:
 			Converter.changed(self, what)
-

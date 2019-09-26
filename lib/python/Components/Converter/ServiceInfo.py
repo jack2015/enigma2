@@ -2,11 +2,12 @@ from Components.Converter.Converter import Converter
 from enigma import iServiceInformation, iPlayableService, eServiceReference
 from Screens.InfoBarGenerics import hasActiveSubservicesForCurrentChannel
 from Components.Element import cached
-from Tools.Transponder import ConvertToHumanReadable
 from Poll import Poll
-from os import path
+from Tools.Transponder import ConvertToHumanReadable
 
 WIDESCREEN = [1, 3, 4, 7, 8, 0xB, 0xC, 0xF, 0x10]
+
+from os import path
 
 class ServiceInfo(Poll, Converter, object):
 	HAS_TELETEXT = 1
@@ -40,14 +41,15 @@ class ServiceInfo(Poll, Converter, object):
 	IS_576 = 29
 	IS_480 = 30
 	IS_4K = 31
-	FREQ_INFO = 32
-	PROGRESSIVE = 33
-	VIDEO_INFO = 34
-	IS_SDR = 35
-	IS_HDR = 36
-	IS_HDR10 = 37
-	IS_HLG = 38
-	IS_HDHDR = 39
+	IS_IPSTREAM = 32
+	IS_SDR = 33
+	IS_HDR = 34
+	IS_HDR10 = 35
+	IS_HLG = 36
+	IS_HDHDR = 37
+	FREQ_INFO = 38
+	PROGRESSIVE = 39
+	VIDEO_INFO = 40
 
 	def __init__(self, type):
 		Poll.__init__(self)
@@ -76,7 +78,7 @@ class ServiceInfo(Poll, Converter, object):
 			"Progressive": (self.PROGRESSIVE, (iPlayableService.evVideoProgressiveChanged, iPlayableService.evUpdatedInfo,)),
 			"VideoInfo": (self.VIDEO_INFO, (iPlayableService.evVideoSizeChanged, iPlayableService.evVideoFramerateChanged, iPlayableService.evVideoProgressiveChanged, iPlayableService.evUpdatedInfo,)),
 			"TransferBPS": (self.TRANSFERBPS, (iPlayableService.evUpdatedInfo,)),
-			"HasHBBTV": (self.HAS_HBBTV, (iPlayableService.evUpdatedInfo, iPlayableService.evHBBTVInfo,)),
+			"HasHBBTV": (self.HAS_HBBTV, (iPlayableService.evUpdatedInfo,iPlayableService.evHBBTVInfo,)),
 			"AudioTracksAvailable": (self.AUDIOTRACKS_AVAILABLE, (iPlayableService.evUpdatedInfo,)),
 			"SubtitlesAvailable": (self.SUBTITLES_AVAILABLE, (iPlayableService.evUpdatedInfo,)),
 			"Freq_Info": (self.FREQ_INFO, (iPlayableService.evUpdatedInfo,)),
@@ -89,6 +91,7 @@ class ServiceInfo(Poll, Converter, object):
 			"Is576": (self.IS_576, (iPlayableService.evVideoSizeChanged,)),
 			"Is480": (self.IS_480, (iPlayableService.evVideoSizeChanged,)),
 			"Is4K": (self.IS_4K, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
+			"IsIPStream": (self.IS_IPSTREAM, (iPlayableService.evUpdatedInfo,)),
 			"IsSDR": (self.IS_SDR, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
 			"IsHDR": (self.IS_HDR, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
 			"IsHDR10": (self.IS_HDR10, (iPlayableService.evVideoSizeChanged,iPlayableService.evVideoGammaChanged,)),
@@ -178,6 +181,7 @@ class ServiceInfo(Poll, Converter, object):
 			video_height = int(info.getInfo(iServiceInformation.sVideoHeight))
 		if not video_aspect:
 			video_aspect = info.getInfo(iServiceInformation.sAspect)
+
 		if self.type == self.HAS_TELETEXT:
 			tpid = info.getInfo(iServiceInformation.sTXTPID)
 			return tpid != -1
@@ -225,35 +229,39 @@ class ServiceInfo(Poll, Converter, object):
 		elif self.type == self.IS_STREAM:
 			return service.streamed() is not None
 		elif self.type == self.IS_SD:
-			return video_height < 720
+			return video_width > 1 and video_width <= 1024 and video_height > 1 and video_height <= 578
 		elif self.type == self.IS_HD:
 			if info.getInfo(iServiceInformation.sGamma) > 0:
 				return False
 			else:
-				return video_width >= 721 and video_width < 1980
+				return video_width > 1024 and video_width <= 1920 and video_height >= 481 and video_height < 1440
 		elif self.type == self.IS_1080:
-			return video_height > 1000 and video_height <= 1080
+			return video_width >= 1920 and video_width <= 1920 and video_height >= 769 and video_height <= 1440
 		elif self.type == self.IS_720:
-			return video_height > 700 and video_height <= 720
+			return video_width >= 1024 and video_width <= 1366 and video_height >= 481 and video_height <= 768
 		elif self.type == self.IS_576:
-			return video_height > 500 and video_height <= 576
+			return video_width > 1 and video_width <= 1024 and video_height > 481 and video_height <= 578
 		elif self.type == self.IS_480:
-			return video_height > 0 and video_height <= 480
-		elif self.type == self.IS_4K: 
+			return video_width > 1 and video_width <= 1024 and video_height > 1 and video_height <= 480
+		elif self.type == self.IS_4K:
 			if info.getInfo(iServiceInformation.sGamma) > 0:
 				return False
 			else:
-				return video_width > 2160 and video_width <= 3840
+				return video_height >= 1460
+		elif self.type == self.IS_IPSTREAM:
+			return service.streamed() is not None
+		elif self.type == self.IS_SDR:
+			return video_height >= 1460 and info.getInfo(iServiceInformation.sGamma) == 0
+		elif self.type == self.IS_HDR:
+			return video_height >= 1460 and info.getInfo(iServiceInformation.sGamma) == 1
+		elif self.type == self.IS_HDR10:
+			return video_height >= 1460 and info.getInfo(iServiceInformation.sGamma) == 2
+		elif self.type == self.IS_HLG:
+			return video_height >= 1460 and info.getInfo(iServiceInformation.sGamma) == 3
+		elif self.type == self.IS_HDHDR:
+			return video_height > 1024 and video_height < 1440 and info.getInfo(iServiceInformation.sGamma) > 0
 		elif self.PROGRESSIVE:
 			return bool(self._getProgressive(info))
-		elif self.type == self.IS_SDR:
-			return info.getInfo(iServiceInformation.sGamma) == 0
-		elif self.type == self.IS_HDR:
-			return info.getInfo(iServiceInformation.sGamma) == 1
-		elif self.type == self.IS_HDR10:
-			return info.getInfo(iServiceInformation.sGamma) == 2
-		elif self.type == self.IS_HLG:
-			return info.getInfo(iServiceInformation.sGamma) == 3
 		return False
 
 	boolean = property(getBoolean)
