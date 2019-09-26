@@ -11,6 +11,11 @@ class OpenEcmInfo(Poll, Converter, object):
 	bitrate = 0
 	vbitrate = 1
 	abitrate = 2
+	videoBitrate = None
+	audioBitrate = None
+	videoBitrate_conn = None
+	audioBitrate_conn = None
+	video = audio = 0
 	
 	def __init__(self, type):
 		Converter.__init__(self, type)
@@ -27,9 +32,10 @@ class OpenEcmInfo(Poll, Converter, object):
 		self.clearData()
 		self.initTimer = eTimer()
 		try:
-		     self.initTimer.callback.append(self.initBitrateCalc)
+			self.initTimer.callback.append(self.initBitrateCalc)
 		except:
-		     self.initTimer_conn = self.initTimer.timeout.connect(self.initBitrateCalc)
+			self.initTimer_conn = self.initTimer.timeout.connect(self.initBitrateCalc)
+
 		
 	def clearData(self):
 		self.videoBitrate = None
@@ -46,28 +52,16 @@ class OpenEcmInfo(Poll, Converter, object):
 			tsid = serviceInfo.getInfo(iServiceInformation.sTSID)
 			onid = serviceInfo.getInfo(iServiceInformation.sONID)
 			dvbnamespace = serviceInfo.getInfo(iServiceInformation.sNamespace)
-		if vpid > 0 and self.type == self.bitrate:
+
+		if vpid > 0 and (self.type == self.vbitrate or self.type == self.bitrate):
 			try:
 				self.videoBitrate = eBitrateCalculator(vpid, dvbnamespace, tsid, onid, 1000, 1024*1024) 
 				self.videoBitrate.callback.append(self.getVideoBitrateData)
 			except:
-				self.videoBitrate = eBitrateCalculator(vpid, dvbnamespace, tsid, onid, 1000, 1024*1024) 
+				self.videoBitrate = eBitrateCalculator(vpid, dvbnamespace, tsid, onid, 1000, 1024*1024)
 				self.videoBitrate_conn = self.videoBitrate.timeout.connect(self.getVideoBitrateData)
-		if vpid > 0 and self.type == self.vbitrate:
-			try:
-				self.videoBitrate = eBitrateCalculator(vpid, dvbnamespace, tsid, onid, 1000, 1024*1024) 
-				self.videoBitrate.callback.append(self.getVideoBitrateData)
-			except:
-				self.videoBitrate = eBitrateCalculator(vpid, dvbnamespace, tsid, onid, 1000, 1024*1024) 
-				self.videoBitrate_conn = self.videoBitrate.timeout.connect(self.getVideoBitrateData)
-		if apid > 0 and self.type == self.bitrate:
-			try:
-				self.audioBitrate = eBitrateCalculator(apid, dvbnamespace, tsid, onid, 1000, 64*1024)
-				self.audioBitrate.callback.append(self.getAudioBitrateData)
-			except:
-				self.audioBitrate = eBitrateCalculator(apid, dvbnamespace, tsid, onid, 1000, 64*1024)
-				self.audioBitrate_conn  = self.audioBitrate.timeout.connect(self.getAudioBitrateData)
-		if apid > 0 and self.type == self.abitrate:
+
+		if apid > 0 and (self.type == self.bitrate or self.type == self.abitrate):
 			try:
 				self.audioBitrate = eBitrateCalculator(apid, dvbnamespace, tsid, onid, 1000, 64*1024)
 				self.audioBitrate.callback.append(self.getAudioBitrateData)
@@ -83,10 +77,10 @@ class OpenEcmInfo(Poll, Converter, object):
 			return ""
 			
 		elif self.type == self.bitrate:
-			return _("Viedo:") + str(self.video) + "  " + _("Audio:") + str(self.audio)
+			return _("Video:") + str(self.video) + "  " + _("Audio:") + str(self.audio)
 
 		elif self.type == self.vbitrate:
-			return _("Viedo:") + str(self.video)
+			return _("Video:") + str(self.video)
 
 		elif self.type == self.abitrate:
 			return _("Audio:") + str(self.audio)
@@ -112,10 +106,9 @@ class OpenEcmInfo(Poll, Converter, object):
 	def changed(self, what):
 		if what[0] == self.CHANGED_SPECIFIC:
 			if what[1] == iPlayableService.evStart:
-				self.initTimer.start(3000, True)
+				self.initTimer.start(2000, True)
 			elif what[1] == iPlayableService.evEnd:
 				self.clearData()
 				Converter.changed(self, what)
 		elif what[0] == self.CHANGED_POLL:
 			self.downstream_elements.changed(what)
-

@@ -53,9 +53,27 @@ class VtiTempFan(Poll, Converter, object):
 			f = open("/proc/stb/sensors/temp/value", "r")
 			tempinfo = str(f.readline().strip())
 			f.close()
+		elif os.path.exists('/proc/stb/fp/temp_sensor_avs'):
+			f = open('/proc/stb/fp/temp_sensor_avs', 'r')
+			tempinfo = f.read()
+			f.close()
+		elif os.path.exists('/sys/devices/virtual/thermal/thermal_zone0/temp'):
+			try:
+				f = open('/sys/devices/virtual/thermal/thermal_zone0/temp', 'r')
+				tempinfo = f.read()
+				tempinfo = tempinfo[:-4]
+				f.close()
+			except:
+				tempinfo = ""
+		elif os.path.exists('/proc/hisi/msp/pm_cpu'):
+			try:
+				tempinfo = search('temperature = (\d+) degree', open("/proc/hisi/msp/pm_cpu").read()).group(1)
+			except:
+				tempinfo = ""
+
 		if tempinfo and int(tempinfo) > 0:
 			mark = str("\xc2\xb0")
-			tempinfo = _("Temp:") + tempinfo + mark + "C"
+			tempinfo = _("Temp:") + tempinfo.replace('\n', '').replace(' ','') + mark + "C"
 		return tempinfo
 
 	def fanfile(self):

@@ -132,7 +132,7 @@ msgstr ""
 "\n"
 "计时器 '%s' 未启用!"
 
-msgid "Viedo:"
+msgid "Video:"
 msgstr "视频:"
 
 msgid "Audio:"
