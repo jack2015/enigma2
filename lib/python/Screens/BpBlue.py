@@ -110,7 +110,7 @@ class DeliteBluePanel(Screen):
 		if fileExists("/etc/BhCamConf"):
 			f = open("/etc/BhCamConf",'r')
 			for line in f.readlines():
-   				parts = line.strip().split("|")
+				parts = line.strip().split("|")
 				if parts[0] == "deldefault":
 					self.defaultcam = parts[1]
 			f.close()
@@ -126,12 +126,12 @@ class DeliteBluePanel(Screen):
 				break
 			pos += 1
 
-		mytext = "";
+		mytext = ""
 		if fileExists("/tmp/ecm.info"):
 			f = open("/tmp/ecm.info",'r')
- 			for line in f.readlines():
+			for line in f.readlines():
 				mytext = mytext + line.strip() + "\n"
- 			f.close()
+			f.close()
 		if len(mytext) < 5:
 			mytext = "\n\n    " + _("Ecm Info not available.")
 				
@@ -174,7 +174,7 @@ class DeliteBluePanel(Screen):
 		client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 		client_socket.connect("/tmp/Blackhole.socket")
 		client_socket.send(data)
-            	client_socket.close()
+		client_socket.close()
 				
 	def keyYellow(self):
 		self.session.open(BhsysInfo)
@@ -263,10 +263,10 @@ class BhsysInfo(Screen):
 
 	def updateInfo(self):
 		rc = system("df -h > /tmp/syinfo.tmp")
-		text = _("BOX\n") + _("Brand:") + "\t" + about.getMachineBrand() + "\n"
+		text = _("BOX\n") + _("Brand:") + "\t" + getMachineBrand() + "\n"
 		f = open("/proc/stb/info/model",'r')
- 		text += _("Model:\t") + f.readline()
- 		f.close()
+		text += _("Model:\t") + f.readline()
+		f.close()
 
 		if about.getChipSetString() != _("unavailable"):
 			if SystemInfo["HasHiSi"]:
@@ -301,7 +301,7 @@ class BhsysInfo(Screen):
 		line = f.readline()
 		parts = line.split()
 		text += _("Flash") + "\t" + parts[1].strip() + "  " + parts[2].strip()  + "  " +  parts[3].strip()  + "  " +  parts[4] + "\n"
- 		for line in f.readlines():
+		for line in f.readlines():
 			if line.find('/media/') != -1:
 				line = line.replace('/media/', '   ')
 				parts = line.split()
