@@ -2,10 +2,13 @@ from Poll import Poll
 from Components.Converter.Converter import Converter
 from enigma import eTimer, iPlayableService, iServiceInformation
 from Components.Element import cached
+
+
 try:
 	from bitratecalc import eBitrateCalculator
-except:
-	pass
+	ISBITRATE = True
+except ImportError:
+	ISBITRATE = False
 
 class OpenEcmInfo(Poll, Converter, object):
 	bitrate = 0
@@ -53,7 +56,7 @@ class OpenEcmInfo(Poll, Converter, object):
 			onid = serviceInfo.getInfo(iServiceInformation.sONID)
 			dvbnamespace = serviceInfo.getInfo(iServiceInformation.sNamespace)
 
-		if vpid > 0 and (self.type == self.vbitrate or self.type == self.bitrate):
+		if vpid > 0 and ISBITRATE and (self.type == self.vbitrate or self.type == self.bitrate):
 			try:
 				self.videoBitrate = eBitrateCalculator(vpid, dvbnamespace, tsid, onid, 1000, 1024*1024) 
 				self.videoBitrate.callback.append(self.getVideoBitrateData)
@@ -61,7 +64,7 @@ class OpenEcmInfo(Poll, Converter, object):
 				self.videoBitrate = eBitrateCalculator(vpid, dvbnamespace, tsid, onid, 1000, 1024*1024)
 				self.videoBitrate_conn = self.videoBitrate.timeout.connect(self.getVideoBitrateData)
 
-		if apid > 0 and (self.type == self.bitrate or self.type == self.abitrate):
+		if apid > 0 and ISBITRATE and (self.type == self.bitrate or self.type == self.abitrate):
 			try:
 				self.audioBitrate = eBitrateCalculator(apid, dvbnamespace, tsid, onid, 1000, 64*1024)
 				self.audioBitrate.callback.append(self.getAudioBitrateData)
