@@ -1,5 +1,7 @@
 from Components.Converter.Converter import Converter
+from Components.Sensors import sensors
 from Components.Element import cached
+from enigma import getBoxType
 from Poll import Poll
 import os
 
@@ -41,120 +43,158 @@ class VtiTempFan(Poll, Converter, object):
 
 	def tempfile(self):
 		tempinfo = ""
-		if os.path.exists("/proc/stb/sensors/temp0/value"):
+		mark = str("\xc2\xb0")
+		sensor_info = None
+	 	if getBoxType() not in ('dm7020hd',):
+			try:
+				sensor_info = sensors.getSensorsList(sensors.TYPE_TEMPERATURE)
+				if sensor_info and len(sensor_info) > 0:			
+					tempinfo = str(sensors.getSensorValue(sensor_info[0]))
+					tempinfo = _("Temp:") + tempinfo + mark + "C"
+					return tempinfo
+			except:
+				pass
+
+		elif os.path.exists("/proc/stb/sensors/temp0/value"):
 			f = open("/proc/stb/sensors/temp0/value", "r")
 			tempinfo = str(f.readline().strip())
 			f.close()
+			if tempinfo and int(tempinfo) > 0:
+				tempinfo = _("Temp:") + tempinfo + mark + "C"
+				return tempinfo
+
 		elif os.path.exists("/proc/stb/fp/temp_sensor"):
 			f = open("/proc/stb/fp/temp_sensor", "r")
 			tempinfo = str(f.readline().strip())
 			f.close()
+			if tempinfo and int(tempinfo) > 0:
+				tempinfo = _("Temp:") + tempinfo + mark + "C"
+				return tempinfo
+
 		elif os.path.exists("/proc/stb/sensors/temp/value"):
 			f = open("/proc/stb/sensors/temp/value", "r")
 			tempinfo = str(f.readline().strip())
 			f.close()
+			if tempinfo and int(tempinfo) > 0:
+				tempinfo = _("Temp:") + tempinfo + mark + "C"
+				return tempinfo
+
 		elif os.path.exists('/proc/stb/fp/temp_sensor_avs'):
 			f = open('/proc/stb/fp/temp_sensor_avs', 'r')
-			tempinfo = f.read()
+			tempinfo = str(f.readline().strip())
 			f.close()
+			if tempinfo and int(tempinfo) > 0:
+				tempinfo = _("Temp:") + tempinfo + mark + "C"
+				return tempinfo
+
 		elif os.path.exists('/sys/devices/virtual/thermal/thermal_zone0/temp'):
-			try:
-				f = open('/sys/devices/virtual/thermal/thermal_zone0/temp', 'r')
-				tempinfo = f.read()
-				tempinfo = tempinfo[:-4]
-				f.close()
-			except:
-				tempinfo = ""
+			f = open('/sys/devices/virtual/thermal/thermal_zone0/temp', 'r')
+			tempinfo = f.read()
+			tempinfo = tempinfo[:-4]
+			tempinfo = str(tempinfo.strip())
+			f.close()
+			if tempinfo and int(tempinfo) > 0:
+				tempinfo = _("Temp:") + tempinfo + mark + "C"
+				return tempinfo
+
 		elif os.path.exists('/proc/hisi/msp/pm_cpu'):
 			try:
 				tempinfo = search('temperature = (\d+) degree', open("/proc/hisi/msp/pm_cpu").read()).group(1)
 			except:
-				tempinfo = ""
+				pass
+			tempinfo = str(tempinfo.strip())
+			if tempinfo and int(tempinfo) > 0:
+				tempinfo = _("Temp:") + tempinfo + mark + "C"
+				return tempinfo
 
-		if tempinfo and int(tempinfo) > 0:
-			mark = str("\xc2\xb0")
-			tempinfo = _("Temp:") + tempinfo.replace('\n', '').replace(' ','') + mark + "C"
 		return tempinfo
 
 	def fanfile(self):
-		fan = ""
+		fan = None
+		flash_info = None
 		if os.path.exists("/proc/stb/fp/fan_speed"):
 			f = open("/proc/stb/fp/fan_speed", "rb")
 			fan = str(f.readline().strip())
 			f.close()
-		return fan
+			if fan is not None:
+				return _("Fan:") + fan
+
+		try:
+			flash_info = os.statvfs("/")
+			if flash_info is not None:			
+				free_flash = int((flash_info.f_frsize) * (flash_info.f_bavail) / 1024 / 1024)
+				return _("Flash: %s MB") % free_flash
+		except:
+			pass
+
+		return ""
 
 	def getCamName(self):
-		camnameinfo = ""
 		if os.path.exists("/etc/CurrentBhCamName"):
-			f = open("/etc/CurrentBhCamName", "r")
-			camnameinfo = f.read()
-			f.close()
-			contentInfo = camnameinfo.split('\n')
-			for line in contentInfo:
-				line = line.lower()
-				if "wicardd" in line:
-					camnameinfo = "Wicardd"
-				elif "incubus" in line:
-					camnameinfo = "Incubus"
-				elif "gbox" in line:
-					camnameinfo = "Gbox"
-				elif "mbox" in line:
-					camnameinfo = "Mbox"
-				elif "cccam" in line:
-					camnameinfo = "CCcam"
-				elif "oscam" in line:
-					camnameinfo = "OScam"
-				elif "camd3" in line:
-					camnameinfo = "Camd3"
-				elif "mgcamd" in line:
-					camnameinfo = "Mgcamd"
-				elif "gcam" in line:
-					camnameinfo = "GCam"
-				elif "ncam" in line:
-					camnameinfo = "NCam"
-				elif "common" in line:
-					camnameinfo = "CI"
-				elif "interface" in line:
-					camnameinfo = "CI"
-				if camnameinfo:
-					return camnameinfo
-		elif os.path.exists("/tmp/.oscam/oscam.version") or os.path.exists("/tmp/.oscam/oscam.pid"):
-			return "OScam"
-		elif os.path.exists("/tmp/cam.info"):
-			f = open("/tmp/cam.info", "r")
-			camnameinfo = f.read()
-			f.close()
-			contentInfo = camnameinfo.split('\n')
-			for line in contentInfo:
-				line = line.lower()
-				if "wicardd" in line:
-					camnameinfo = "Wicardd"
-				elif "incubus" in line:
-					camnameinfo = "Incubus"
-				elif "gbox" in line:
-					camnameinfo = "Gbox"
-				elif "mbox" in line:
-					camnameinfo = "Mbox"
-				elif "cccam" in line:
-					camnameinfo = "CCcam"
-				elif "oscam" in line:
-					camnameinfo = "OScam"
-				elif "camd3" in line:
-					camnameinfo = "Camd3"
-				elif "mgcamd" in line:
-					camnameinfo = "Mgcamd"
-				elif "gcam" in line:
-					camnameinfo = "GCam"
-				elif "ncam" in line:
-					camnameinfo = "NCam"
-				elif "common" in line:
-					camnameinfo = "CI"
-				elif "interface" in line:
-					camnameinfo = "CI"
-				if camnameinfo:
-					return camnameinfo
-		return camnameinfo
+			try:
+				for line in open("/etc/CurrentBhCamName"):
+					line = line.lower()
+					if "wicardd" in line:
+						return "Wicardd"
+					elif "incubus" in line:
+						return "Incubus"
+					elif "gbox" in line:
+						return "Gbox"
+					elif "mbox" in line:
+						return "Mbox"
+					elif "cccam" in line:
+						return "CCcam"
+					elif "oscam" in line:
+						return "OScam"
+					elif "camd3" in line:
+						if "mgcamd" not in line:
+							return "Camd3"
+					elif "mgcamd" in line:
+						return "Mgcamd"
+					elif "gcam" in line:
+						if "mgcamd" not in line:
+							return "GCam"
+					elif "ncam" in line:
+						return "NCam"
+					elif "common" in line:
+						return "CI"
+					elif "interface" in line:
+						return "CI"
+			except:
+				pass
+		elif os.path.exists("/etc/init.d/softcam"):
+			try:
+				for line in open("/etc/init.d/softcam"):
+					line = line.lower()
+					if "wicardd" in line:
+						return "Wicardd"
+					elif "incubus" in line:
+						return "Incubus"
+					elif "gbox" in line:
+						return "Gbox"
+					elif "mbox" in line:
+						return "Mbox"
+					elif "cccam" in line:
+						return "CCcam"
+					elif "oscam" in line:
+						return "OScam"
+					elif "camd3" in line:
+						if "mgcamd" not in line:
+							return "Camd3"
+					elif "mgcamd" in line:
+						return "Mgcamd"
+					elif "gcam" in line:
+						if "mgcamd" not in line:
+							return "GCam"
+					elif "ncam" in line:
+						return "NCam"
+					elif "common" in line:
+						return "CI"
+					elif "interface" in line:
+						return "CI"
+			except:
+				pass
+		return ""
 
 	def changed(self, what):
 		if what[0] == self.CHANGED_POLL:
