@@ -1,7 +1,7 @@
 from Components.Converter.Converter import Converter
 from Components.Sensors import sensors
 from Components.Element import cached
-from enigma import getBoxType
+from boxbranding import getBoxType
 from Poll import Poll
 import os
 
