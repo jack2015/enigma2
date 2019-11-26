@@ -10,22 +10,25 @@ from Tools.GetEcmInfo import GetEcmInfo
 from Poll import Poll
 
 caid_data = (
-	("0x1700", "0x17ff", "BetaCrypt",        "B",     True ),
-	( "0x600",  "0x6ff", "Irdeto",           "I",     True ),
-	("0x1800", "0x18ff", "Nagravision",      "N",     True ),
-	( "0x100",  "0x1ff", "Seca Mediaguard",  "S",     True ),
-	("0x1000", "0x10FF", "Tandberg",         "T",     True ),
-	( "0x500",  "0x5ff", "Viaccess",         "V",     True ),
-	("0x2600", "0x2600", "Biss",             "BI",    True ),
-	("0x4aee", "0x4aee", "BulCrypt",         "BU",    True ),
-	("0x5581", "0x5581", "BulCrypt",         "BU",    False),
-	( "0xb00",  "0xbff", "Conax",            "CO",    True ),
-	( "0xd00",  "0xdff", "CryptoWorks",      "CW",    True ),
-	("0x2700", "0x2710", "DRE-Crypt3",       "DC",    False),
-	("0x4ae0", "0x4ae1", "DRE-Crypt",        "DC",    True ),
-	( "0x900",  "0x9ff", "NDS Videoguard",   "ND",    True ),
-	( "0xe00",  "0xeff", "PowerVu",          "PV",    True ),
-	("0x5601", "0x5604", "Verimatrix",       "VM",    True )
+	("0x1700", "0x17ff", _("BetaCrypt"),       "B",  True ),
+	( "0x600",  "0x6ff", _("Irdeto"),          "I",  True ),
+	("0x1800", "0x18ff", _("Nagravision"),     "N",  True ),
+	( "0x100",  "0x1ff", _("Seca Mediaguard"), "S",  True ),
+	("0x1000", "0x10FF", _("Tandberg"),        "T",  False),
+	( "0x500",  "0x5ff", _("Viaccess"),        "V",  True ),
+	("0x2600", "0x2600", _("Biss"),            "BI", False),
+	("0x4aee", "0x4aee", _("BulCrypt"),        "BU", False),
+	("0x5581", "0x5581", _("BulCrypt"),        "BU", False),
+	( "0xb00",  "0xbff", _("Conax"),           "CO", True ),
+	( "0xd00",  "0xdff", _("CryptoWorks"),     "CW", True ),
+	("0x2700", "0x2710", _("DRE-Crypt3"),      "DC", False),
+	("0x4ae0", "0x4ae1", _("DRE-Crypt"),       "DC", True ),
+	( "0x900",  "0x9ff", _("NDS Videoguard"),  "ND", True ),
+	( "0xe00",  "0xeff", _("PowerVu"),         "PV", True ),
+	("0x4a30", "0x4a30", _("DVN-JET"),         "TB", True ),
+	("0x4ad2", "0x4ad3", _("STREAMGUARD"),     "SM", True ),
+	("0x4a02", "0x4a02", _("TONGFANG"),        "TF", True ),
+	("0x5601", "0x5604", _("Verimatrix"),      "VM", True )
 )
 
 # stream type to codec map
@@ -68,38 +71,44 @@ class PliExtraInfo(Poll, Converter, object):
 		self.poll_interval = 1000
 		self.poll_enabled = True
 		self.ca_table = (
-			("CryptoCaidBetatAvailable",      "B",    False),
-			("CryptoCaidIrdetoAvailable",     "I",    False),
-			("CryptoCaidNagraAvailable",      "N",    False),
-			("CryptoCaidSecaAvailable",       "S",    False),
-			("CryptoCaidTandbergAvailable",   "T",    False),
-			("CryptoCaidViaAvailable",        "V",    False),
-			("CryptoCaidBissAvailable",       "BI",   False),
-			("CryptoCaidBulCrypt1Available",  "BU",   False),
-			("CryptoCaidBulCrypt2Available",  "BU",   False),
-			("CryptoCaidConaxAvailable",      "CO",   False),
-			("CryptoCaidCryptoWAvailable",    "CW",   False),
-			("CryptoCaidDre3Available",       "DC",   False),
-			("CryptoCaidDreAvailable",        "DC",   False),
-			("CryptoCaidNDSAvailable",        "ND",   False),
-			("CryptoCaidPowerVuAvailable",    "PV",   False),
-			("CryptoCaidVerimatrixAvailable", "VM",   False),
-			("CryptoCaidBetaSelected",        "B",    True ),
-			("CryptoCaidIrdetoSelected",      "I",    True ),
-			("CryptoCaidNagraSelected",       "N",    True ),
-			("CryptoCaidSecaSelected",        "S",    True ),
-			("CryptoCaidTandbergSelected",    "T",    True ),
-			("CryptoCaidViaSelected",         "V",    True ),
-			("CryptoCaidBissSelected",        "BI",   True ),
-			("CryptoCaidBulCrypt1Selected",   "BU",   True ),
-			("CryptoCaidBulCrypt2Selected",   "BU",   True ),
-			("CryptoCaidConaxSelected",       "CO",   True ),
-			("CryptoCaidCryptoWSelected",     "CW",   True ),
-			("CryptoCaidDre3Selected",        "DC",   True ),
-			("CryptoCaidDreSelected",         "DC",   True ),
-			("CryptoCaidNDSSelected",         "ND",   True ),
-			("CryptoCaidPowerVuSelected",     "PV",   True ),
-			("CryptoCaidVerimatrixSelected",  "VM",   True ),
+			("CryptoCaidBetatAvailable",    "B",	False),
+			("CryptoCaidIrdetoAvailable"    "I",	False),
+			("CryptoCaidNagraAvailable",    "N",	False),
+			("CryptoCaidSecaAvailable",     "S",	False),
+			("CryptoCaidTandbergAvailable", "T",	False),
+			("CryptoCaidViaAvailable",      "V",	False),
+			("CryptoCaidBissAvailable",     "BI",	False),
+			("CryptoCaidBulCrypt1Available","BU",	False),
+			("CryptoCaidBulCrypt2Available","BU",	False),
+			("CryptoCaidConaxAvailable",    "CO",	False),
+			("CryptoCaidCryptoWAvailable",  "CW",	False),
+			("CryptoCaidDre3Available",     "DC",	False),
+			("CryptoCaidDreAvailable",      "DC",	False),
+			("CryptoCaidNDSAvailable",      "ND",	False),
+			("CryptoCaidPowerVuAvailable",  "PV",	False),
+			("CryptoCaidDvnAvailable",      "TB",	False),
+			("CryptoCaidSmsxAvailable",     "SM",	False),
+			("CryptoCaidTongfangAvailable", "TF",	False),
+			("CryptoCaidVerimatrixAvailable", "VM", False),
+			("CryptoCaidBetaSelected",      "B",	True ),
+			("CryptoCaidIrdetoSelected",    "I",	True ),
+			("CryptoCaidNagraSelected",     "N",	True ),
+			("CryptoCaidSecaSelected",      "S",	True ),
+			("CryptoCaidTandbergSelected",  "T",	True ),
+			("CryptoCaidViaSelected",       "V",	True ),
+			("CryptoCaidBissSelected",      "BI",	True ),
+			("CryptoCaidBulCrypt1Selected", "BU",	True ),
+			("CryptoCaidBulCrypt2Selected", "BU",	True ),
+			("CryptoCaidConaxSelected",     "CO",	True ),
+			("CryptoCaidCryptoWSelected",   "CW",	True ),
+			("CryptoCaidDre3Selected",      "DC",	True ),
+			("CryptoCaidDreSelected",       "DC",	True ),
+			("CryptoCaidNDSSelected",       "ND",	True ),
+			("CryptoCaidPowerVuSelected",   "PV",	True ),
+			("CryptoCaidDvnSelected",       "TB",	True ),
+			("CryptoCaidSmsxSelected",      "SM",	True ),
+			("CryptoCaidTongfangSelected",  "TF",	True ),
+			("CryptoCaidVerimatrixSelected", "VM", True ),
 		)
 		self.ecmdata = GetEcmInfo()
 		self.feraw = self.fedata = self.updateFEdata = None
@@ -143,19 +152,24 @@ class PliExtraInfo(Poll, Converter, object):
 
 
 	def createCryptoSpecial(self, info):
-		caid_name = "Free to Air"
+		caid_system = _("CA System: ")
+		caid_name = _("FTA")
+		if int(self.current_caid,16) == 0:
+			return caid_system + caid_name
 		try:
 			for caid_entry in caid_data:
 				if int(caid_entry[0], 16) <= int(self.current_caid, 16) <= int(caid_entry[1], 16):
 					caid_name = caid_entry[2]
 					break
-			return caid_name + ":%04x:%04x:%04x" % (int(self.current_caid,16), int(self.current_provid,16), info.getInfo(iServiceInformation.sSID))
+			caid_num = "%04x" % (int(self.current_caid,16))
+			caid_num = caid_num.upper()
+			return caid_system + caid_name + "@" + caid_num
 		except:
 			pass
 		return ""
 
 	def createCryptoNameCaid(self, info):
-		caid_name = "Free to Air"
+		caid_name = "FTA"
 		if int(self.current_caid,16) == 0:
 			return caid_name
 		try:
@@ -169,42 +183,19 @@ class PliExtraInfo(Poll, Converter, object):
 		return ""
 
 	def createResolution(self, info):
-		video_height = 0
-		video_width = 0
-		video_pol = " "
-		video_rate = 0
-		if path.exists("/proc/stb/vmpeg/0/yres"):
-			f = open("/proc/stb/vmpeg/0/yres", "r")
+		xres = info.getInfo(iServiceInformation.sVideoWidth)
+		if xres == -1:
+			return ""
+		yres = info.getInfo(iServiceInformation.sVideoHeight)
+		mode = ("i", "p", " ")[info.getInfo(iServiceInformation.sProgressive)]
+		fps = (info.getInfo(iServiceInformation.sFrameRate) + 500) / 1000
+		if not fps:
 			try:
-				video_height = int(f.read(),16)
+				fps = (int(open("/proc/stb/vmpeg/0/framerate", "r").read()) + 500) / 1000
 			except:
 				pass
-			f.close()
-		if path.exists("/proc/stb/vmpeg/0/xres"):
-			f = open("/proc/stb/vmpeg/0/xres", "r")
-			try:
-				video_width = int(f.read(),16)
-			except:
-				pass
-			f.close()
-		if path.exists("/proc/stb/vmpeg/0/progressive"):
-			f = open("/proc/stb/vmpeg/0/progressive", "r")
-			try:
-				video_pol = "p" if int(f.read(),16) else "i"
-			except:
-				pass
-			f.close()
-		if path.exists("/proc/stb/vmpeg/0/framerate"):
-			f = open("/proc/stb/vmpeg/0/framerate", "r")
-			try:
-				video_rate = int(f.read())
-			except:
-				pass
-			f.close()
-
-		fps  = str((video_rate + 500) / 1000)
 		gamma = ("SDR", "HDR", "HDR10", "HLG", "")[info.getInfo(iServiceInformation.sGamma)]
-		return str(video_width) + "x" + str(video_height) + video_pol + fps + addspace(gamma)
+		return "%sx%s%s%s %s" % (xres, yres, mode, fps, gamma)
 
 	def createVideoCodec(self, info):
 		return codec_data.get(info.getInfo(iServiceInformation.sVideoType), "N/A")
