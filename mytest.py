@@ -11,7 +11,7 @@ profile("PYTHON_START")
 # Don't remove this line. It may seem to do nothing, but if removed,
 # it will break output redirection for crash logs.
 import Tools.RedirectOutput
-from boxbranding import getImageVersion, getImageBuild, getImageDevBuild, getImageType, getBoxType
+from boxbranding import getImageVersion, getImageBuild, getImageDevBuild, getImageType
 print "[Image Type] %s" % getImageType()
 print "[Image Version] %s" % getImageVersion()
 print "[Image Build] %s" % getImageBuild()
@@ -24,6 +24,7 @@ import eBaseImpl
 enigma.eTimer = eBaseImpl.eTimer
 enigma.eSocketNotifier = eBaseImpl.eSocketNotifier
 enigma.eConsoleAppContainer = eConsoleImpl.eConsoleAppContainer
+from boxbranding import getBoxType
 boxtype = getBoxType()
 
 from traceback import print_exc
