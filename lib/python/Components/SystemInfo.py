@@ -80,6 +80,14 @@ SystemInfo["canMultiBoot"] = getMachineBuild() in ('hd51','vs1500','h7','h9combo
 SystemInfo["HasHiSi"] = False
 SystemInfo["HasH9SD"] = False
 SystemInfo["canBackupEMC"] = False
+
+SystemInfo["HasRootSubdir"] = False
+SystemInfo["RecoveryMode"] = False
+SystemInfo["AndroidMode"] = False
+SystemInfo["canMultiBoot"] = False
+SystemInfo["canBackupEMC"] = False
+SystemInfo["HasHiSi"] = False
+
 SystemInfo["canMode12"] = getMachineBuild() in ('hd51','vs1500','h7') and ('brcm_cma=440M@328M brcm_cma=192M@768M', 'brcm_cma=520M@248M brcm_cma=200M@768M')
 SystemInfo["HasMMC"] = fileHas("/proc/cmdline", "root=/dev/mmcblk") or SystemInfo["canMultiBoot"] and fileHas("/proc/cmdline", "root=/dev/sda")
 SystemInfo["HasSDmmc"] = SystemInfo["canMultiBoot"] and "sd" in SystemInfo["canMultiBoot"][2] and "mmcblk" in getMachineMtdRoot() 
