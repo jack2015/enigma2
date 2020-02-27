@@ -643,6 +643,7 @@ data/Makefile
 data/fonts/Makefile
 data/keymaps/Makefile
 data/displaytext/Makefile
+data/7segment/Makefile
 data/display96/Makefile
 data/display128/Makefile
 data/display128dm/Makefile
