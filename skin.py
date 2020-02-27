@@ -12,7 +12,6 @@ from Components.Sources.Source import ObsoleteSource
 from Tools.Directories import SCOPE_CONFIG, SCOPE_CURRENT_LCDSKIN, SCOPE_CURRENT_SKIN, SCOPE_FONTS, SCOPE_SKIN, SCOPE_SKIN_IMAGE, fileExists, resolveFilename
 from Tools.Import import my_import
 from Tools.LoadPixmap import LoadPixmap
-from boxbranding import getBoxType
 
 DEFAULT_SKIN = "BlackShadowSE_P/skin.xml"
 EMERGENCY_SKIN = "skin_default/skin.xml"
