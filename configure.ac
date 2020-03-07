@@ -646,7 +646,6 @@ data/displaytext/Makefile
 data/7segment/Makefile
 data/display96/Makefile
 data/display128/Makefile
-data/display128dm/Makefile
 data/display220/Makefile
 data/display390/Makefile
 data/display400/Makefile
