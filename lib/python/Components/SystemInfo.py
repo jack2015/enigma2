@@ -49,7 +49,7 @@ SystemInfo["LEDButtons"] = getBoxType() == 'vuultimo'
 SystemInfo["DeepstandbySupport"] = HardwareInfo().has_deepstandby()
 SystemInfo["Fan"] = fileCheck("/proc/stb/fp/fan")
 SystemInfo["FanPWM"] = SystemInfo["Fan"] and fileCheck("/proc/stb/fp/fan_pwm")
-SystemInfo["PowerLed"] = False
+SystemInfo["PowerLED"] = False
 SystemInfo["StandbyLED"] = False
 SystemInfo["SuspendLED"] = False
 SystemInfo["LedPowerColor"] = False
