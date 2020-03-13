@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-09-18 06:38+0000\n"
-"PO-Revision-Date: 2019-09-27 01:19+0800\n"
+"PO-Revision-Date: 2020-02-25 21:26+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -146,6 +146,9 @@ msgstr "智能卡系统: "
 
 msgid "Temp:"
 msgstr "温度:"
+
+msgid "Fan:"
+msgstr "风扇:"
 
 msgid ""
 "\n"
