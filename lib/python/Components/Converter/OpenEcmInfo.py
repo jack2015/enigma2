@@ -3,7 +3,6 @@ from Components.Converter.Converter import Converter
 from enigma import eTimer, iPlayableService, iServiceInformation
 from Components.Element import cached
 
-
 try:
 	from bitratecalc import eBitrateCalculator
 	ISBITRATE = True
@@ -25,7 +24,7 @@ class OpenEcmInfo(Poll, Converter, object):
 		Poll.__init__(self)
 		self.type = type
 		self.poll_interval = 1000
-		self.poll_enabled = False
+		self.poll_enabled = True
 		if type == "bitrate":
 			self.type = self.bitrate
 		elif type == "vbitrate":
@@ -78,8 +77,11 @@ class OpenEcmInfo(Poll, Converter, object):
 		info = service and service.info()
 		if not info:
 			return ""
+
+		if service.streamed() is not None:
+			return ""
 			
-		elif self.type == self.bitrate:
+		if self.type == self.bitrate:
 			return _("Video:") + str(self.video) + "  " + _("Audio:") + str(self.audio)
 
 		elif self.type == self.vbitrate:
@@ -109,7 +111,7 @@ class OpenEcmInfo(Poll, Converter, object):
 	def changed(self, what):
 		if what[0] == self.CHANGED_SPECIFIC:
 			if what[1] == iPlayableService.evStart:
-				self.initTimer.start(2000, True)
+				self.initTimer.start(1000, True)
 			elif what[1] == iPlayableService.evEnd:
 				self.clearData()
 				Converter.changed(self, what)
