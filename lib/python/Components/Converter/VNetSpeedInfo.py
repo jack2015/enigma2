@@ -1,60 +1,40 @@
-# -*- coding: utf-8 -*-
-
-
-#This plugin is free software, you are allowed to
-#modify it (if you keep the license),
-#but you are not allowed to distribute/publish
-#it without source code (this version and your modifications).
-#This means you also have to distribute
-#source code of your modifications.
-#
-#
-#######################################################################
-#
-# NetSpeedInfo for VU+
-# Coded by markusw (c) 2013
-# www.vuplus-support.org
-#
-####################################################################### 
-
-import os
 from Components.Label import Label
 from Components.Converter.Converter import Converter
 from Components.Element import cached
 from Poll import Poll
 
 class VNetSpeedInfo(Poll, Converter, object):
-	RCL = 0 			# Receive Lan in Megabit/s = Geschwindigkeit/Bandbreite
-	TML = 1				# Transmit Lan in Megabit/s = Geschwindigkeit/Bandbreite
-	RCW = 2				# Receive Wlan in Megabit/s = Geschwindigkeit/Bandbreite
-	TMW = 3				# Transmit Wlan in Megabit/s = Geschwindigkeit/Bandbreite
-	RCLT = 4			# Receive Lan-total seit dem letzten Neustart in Megabyte
-	TMLT = 5			# Transmit Lan-total seit dem letzten Neustart in Megabyte
-	RCWT = 6			# Receive Wlan-total seit dem letzten Neustart in Megabyte
-	TMWT = 7			# Transmit Wlan-total seit dem letzten Neustart in Megabyte
-	RCL_MB = 8		# Receive Lan in Megabyte/s = Geschwindigkeit/Bandbreite
-	TML_MB = 9		# Transmit Lan in Megabyte/s = Geschwindigkeit/Bandbreite
-	RCW_MB = 10		# Receive Wlan in Megabyte/s = Geschwindigkeit/Bandbreite
-	TMW_MB = 11		# Transmit Wlan in Megabyte/s = Geschwindigkeit/Bandbreite
-	RC = 12				# Receive Lan oder Wlan in Megabit/s = Geschwindigkeit/Bandbreite - wenn beides vorhanden wird Lan ausgegeben
-	TM = 13				# Transmit Lan oder Wlan in Megabit/s = Geschwindigkeit/Bandbreite - wenn beides vorhanden wird Lan ausgegeben
-	RCT = 14			# Receive Lan oder Wlan total seit dem letzten Neustart in Megabyte - wenn beides vorhanden wird Lan ausgegeben
-	TMT = 15			# Transmit Lan oder Wlan total seit dem letzten Neustart in Megabyte - wenn beides vorhanden wird Lan ausgegeben
-	RC_MB = 16		# Receive Lan oder Wlan in Megabyte/s = Geschwindigkeit/Bandbreite - wenn beides vorhanden wird Lan ausgegeben
-	TM_MB = 17		# Transmit Lan oder Wlan in Megabyte/s = Geschwindigkeit/Bandbreite - wenn beides vorhanden wird Lan ausgegeben
-	NET_TYP = 18	# Lan - Wlan - Lan+Wlan
-	ERR_RCL = 19  # Fehler Lan-Receive
-	ERR_TML = 20  # Fehler Lan-Transmit
-	DRO_RCL = 21  # Drop Lan-Receive
-	DRO_TML = 22  # Drop Lan-Transmit
-	ERR_RCW = 23  # Fehler WLan-Receive
-	ERR_TMW = 24  # Fehler WLan-Transmit
-	DRO_RCW = 25  # Drop WLan-Receive
-	DRO_TMW = 26  # Drop WLan-Transmit
+	RCL = 0
+	TML = 1
+	RCW = 2
+	TMW = 3
+	RCLT = 4
+	TMLT = 5
+	RCWT = 6
+	TMWT = 7
+	RCL_MB = 8
+	TML_MB = 9
+	RCW_MB = 10
+	TMW_MB = 11
+	RC = 12
+	TM = 13
+	RCT = 14
+	TMT = 15
+	RC_MB = 16
+	TM_MB = 17
+	NET_TYP = 18
+	ERR_RCL = 19
+	ERR_TML = 20
+	DRO_RCL = 21
+	DRO_TML = 22
+	ERR_RCW = 23
+	ERR_TMW = 24
+	DRO_RCW = 25
+	DRO_TMW = 26
 
-	def __init__(self, type,update_interval = 1000):
+	def __init__(self, type,update_interval = 1500):
 		Poll.__init__(self)
-		self.poll_interval = 1500
+		self.poll_interval = 2000
 		self.poll_enabled = True
 		self.lanreceivetotal=0
 		self.lanreceivetotalout=0
@@ -147,9 +127,15 @@ class VNetSpeedInfo(Poll, Converter, object):
 
 	@cached
 	def getText(self):
+		service = self.source.service
+		info = service and service.info()
+		if not info:
+			return ""
+		if service.streamed() is None:
+			return ""
 		textvalue = ""
-		textvalue = self.updateNetSpeedInfoStatus() 
-		return textvalue 
+		textvalue = self.updateNetSpeedInfoStatus()
+		return textvalue
 	
 	text = property(getText)
 
@@ -242,7 +228,6 @@ class VNetSpeedInfo(Poll, Converter, object):
 				self.wlantransmittotalout=newwlantransmit/1024
 		bwm.close()
 
-#		if ((flaglan == 1) and (flagwlan == 0)) or ((flaglan == 1) and (flagwlan == 1)):
 		if flaglan == 1:
 			self.receive = self.lanreceive
 			self.transmit = self.lantransmit
@@ -286,9 +271,9 @@ class VNetSpeedInfo(Poll, Converter, object):
 		elif self.type == self.TMW_MB:
 			return "%3.1fMb/s" % self.wlantransmitmb
 		elif self.type == self.RC:
-			return "%3.1fMb/s" % self.receive
+			return _("RC:%3.1fM/s") % self.receive
 		elif self.type == self.TM:
-			return "%3.1fMb/s" % self.transmit
+			return _("TM:%3.1fM/s") % self.transmit
 		elif self.type == self.RCT:
 			return "%d" % self.receivetotalout
 		elif self.type == self.TMT:
