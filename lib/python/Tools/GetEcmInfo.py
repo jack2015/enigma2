@@ -143,7 +143,7 @@ class GetEcmInfo:
 					ecm = _('Ecm:') + ' '
 					if info.get('ecm time', None):
 						ecm += info.get('ecm time', '')
-					self.textvalue = address + '  ' + protocol + '  ' + hops + '  ' + ecm
+					self.textvalue = address + '\n' + protocol + '  ' + hops + '  ' + ecm
 		else:
 			decode = info.get('decode', None)
 			if decode:
