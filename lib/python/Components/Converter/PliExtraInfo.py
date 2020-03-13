@@ -27,10 +27,10 @@ caid_data = (
 	("0x4ae0", "0x4ae1", _("DRE-Crypt"),       "DC", True ),
 	( "0x900",  "0x9ff", _("NDS Videoguard"),  "ND", True ),
 	( "0xe00",  "0xeff", _("PowerVu"),         "PV", True ),
-	("0x4a30", "0x4a30", _("DVN-JET"),         "TB", True ),
-	("0x4ad2", "0x4ad3", _("STREAMGUARD"),     "SM", True ),
-	("0x4a02", "0x4a02", _("TONGFANG"),        "TF", True ),
-	("0x5601", "0x5604", _("Verimatrix"),      "VM", True )
+	("0x4a30", "0x4a30", _("DVN-JET"),         "TB", False),
+	("0x4ad2", "0x4ad3", _("STREAMGUARD"),     "SM", False),
+	("0x4a02", "0x4a02", _("TONGFANG"),        "TF", False),
+	("0x5601", "0x5604", _("Verimatrix"),      "VM", False)
 )
 
 # stream type to codec map
