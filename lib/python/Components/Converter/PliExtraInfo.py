@@ -190,11 +190,23 @@ class PliExtraInfo(Poll, Converter, object):
 		if xres == -1:
 			return ""
 		yres = info.getInfo(iServiceInformation.sVideoHeight)
-		mode = ("i", "p", " ")[info.getInfo(iServiceInformation.sProgressive)]
+		mode = ("i", "p", "")[info.getInfo(iServiceInformation.sProgressive)]
 		fps = (info.getInfo(iServiceInformation.sFrameRate) + 500) / 1000
 		if not fps:
 			try:
-				fps = (int(open("/proc/stb/vmpeg/0/framerate", "r").read()) + 500) / 1000
+				if path.exists("/proc/stb/vmpeg/0/framerate"):
+					fps = (int(open("/proc/stb/vmpeg/0/framerate", "r").read()) + 500) / 1000
+				elif path.exists("/proc/stb/vmpeg/0/fallback_framerate"):
+					fps = (int(open("/proc/stb/vmpeg/0/fallback_framerate", "r").read()) + 0) / 1000
+			except:
+				pass
+		if not mode:
+			try:
+				if path.exists("/proc/stb/vmpeg/0/progressive"):
+					if int(open("/proc/stb/vmpeg/0/progressive", "r").read(),16):
+						mode = "p"
+					else:
+						mode = "i"
 			except:
 				pass
 		gamma = ("SDR", "HDR", "HDR10", "HLG", "")[info.getInfo(iServiceInformation.sGamma)]
