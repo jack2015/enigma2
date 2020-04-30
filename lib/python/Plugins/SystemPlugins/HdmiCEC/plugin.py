@@ -5,7 +5,6 @@ from Screens.Screen import Screen
 from Components.ConfigList import ConfigListScreen
 from Components.config import config, configfile, getConfigListEntry
 from Components.Sources.StaticText import StaticText
-from Tools.Directories import fileExists
 
 if path.exists('/dev/hdmi_cec') or path.exists('/dev/misc/hdmi_cec0'):
 	import Components.HdmiCec
