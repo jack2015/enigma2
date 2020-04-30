@@ -2,7 +2,7 @@ from boxbranding import getBoxType, getDisplayType
 from sys import maxint
 
 from twisted.internet import threads
-from enigma import eDBoxLCD, eTimer, eActionMap, getBoxType
+from enigma import eDBoxLCD, eTimer, eActionMap
 
 from config import config, ConfigSubsection, ConfigSelection, ConfigSlider, ConfigYesNo, ConfigNothing
 from Components.SystemInfo import SystemInfo
