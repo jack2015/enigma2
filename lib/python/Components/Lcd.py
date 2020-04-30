@@ -2,7 +2,7 @@ from boxbranding import getBoxType, getDisplayType
 from sys import maxint
 
 from twisted.internet import threads
-from enigma import eDBoxLCD, eTimer, eActionMap
+from enigma import eDBoxLCD, eTimer, eActionMap, getBoxType
 
 from config import config, ConfigSubsection, ConfigSelection, ConfigSlider, ConfigYesNo, ConfigNothing
 from Components.SystemInfo import SystemInfo
@@ -422,7 +422,11 @@ def InitLcd():
 			config.lcd.contrast.addNotifier(setLCDcontrast)
 		else:
 			config.lcd.contrast = ConfigNothing()
-			standby_default = 1
+			if getBoxType() in ('dm900','dm920'):			
+				standby_default = 4              			
+			else:                              			
+				standby_default = 1              			
+			
 
 		config.lcd.standby = ConfigSlider(default=standby_default, limits=(0, 10))
 		config.lcd.standby.addNotifier(setLCDbright)
