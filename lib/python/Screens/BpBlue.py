@@ -345,19 +345,26 @@ class BhEpgPanel(Screen):
 		sel = self["list"].getCurrent()
 		if sel:
 			if sel == "CrossEPG":
-				from Plugins.SystemPlugins.CrossEPG.crossepg_main import crossepg_main
-				crossepg_main.setup(self.session)
+				try:
+					from Plugins.SystemPlugins.CrossEPG.crossepg_main import crossepg_main
+					crossepg_main.setup(self.session)
+				except:
+					self.session.open(MessageBox, _("Sorry, plugin not available"), MessageBox.TYPE_INFO)
 			elif sel == "EPGSettings":
 				from Screens.Setup import Setup
 				self.session.open(Setup, "epgsettings")
 			elif sel == "EPGImport":
-				from Plugins.Extensions.EPGImport.plugin import main as xmltv
-				xmltv(self.session)
+				try:
+					from Plugins.Extensions.EPGImport.plugin import main as xmltv
+					xmltv(self.session)
+				except:
+					self.session.open(MessageBox, _("Sorry, plugin not available"), MessageBox.TYPE_INFO)
 			elif sel == "EPGSearch":
-				#from Plugins.Extensions.EPGSearch.plugin import main as epgsearch
-				#epgsearch(self.session)
-				from Plugins.Extensions.EPGSearch.EPGSearch import EPGSearch  as epgsearch
-				self.session.open(epgsearch)
+				try:
+					from Plugins.Extensions.EPGSearch.EPGSearch import EPGSearch  as epgsearch
+					self.session.open(epgsearch)
+				except:
+					self.session.open(MessageBox, _("Sorry, plugin not available"), MessageBox.TYPE_INFO)
 
 class DeliteBp:
 	def __init__(self):
