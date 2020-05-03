@@ -1,5 +1,6 @@
 from boxbranding import getImageVersion, getMachineBuild, getBoxType
 from sys import modules
+from os import path
 import socket, fcntl, struct
 
 def getVersionString():
@@ -24,6 +25,15 @@ def getGStreamerVersionString():
 		return "%s" % gst[1].split("+")[0].replace("\n","")
 	except:
 		return _("unknown")
+
+def getFFmpegVersionString():
+	try:
+		from glob import glob
+		ffmpeg = [x.split("Version: ") for x in open(glob("/var/lib/opkg/info/ffmpeg.control")[0], "r") if x.startswith("Version:")][0]
+		version = ffmpeg[1].split("-")[0].replace("\n","")
+		return "%s" % version.split("+")[0]
+	except:
+		return ""
 
 def getKernelVersionString():
 	try:
@@ -56,11 +66,17 @@ def getIsBroadcom():
 		return False
 
 def getChipSetString():
+	processor = ""
 	try:
-		f = open('/proc/stb/info/chipset', 'r')
-		chipset = f.read()
-		f.close()
-		return str(chipset.lower().replace('\n','').replace('brcm','').replace('bcm',''))
+		if path.isfile('/proc/stb/info/chipset'):
+			processor = "%s (%s)" % (open("/proc/stb/info/chipset").readline().strip().upper(), processor)
+			return processor
+		for line in open("/proc/cpuinfo").readlines():
+			line = [x.strip() for x in line.strip().split(":")]
+			if not processor and line[0] in ("system type", "model name", "Processor"):
+				processor = line[1].split()[0]
+				break
+		return processor
 	except IOError:
 		return _("unavailable")
 

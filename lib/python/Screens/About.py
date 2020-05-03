@@ -120,6 +120,13 @@ class About(Screen):
 		AboutText += _("Drivers:\t%s\n") % driversdate
 		AboutText += _("Kernel:\t%s\n") % about.getKernelVersionString()
 		AboutText += _("GStreamer:\t%s\n") % about.getGStreamerVersionString().replace("GStreamer ","")
+
+		FFmpegVersion = about.getFFmpegVersionString()
+		if FFmpegVersion != "":
+			FFmpegVersion = _("FFmpeg version:\t") + FFmpegVersion
+			self["FFmpegVersion"] = StaticText(FFmpegVersion)
+			AboutText += FFmpegVersion + "\n"
+
 		AboutText += _("Python:\t%s\n") % about.getPythonVersionString()
 		AboutText += _("Installed:\t%s\n") % about.getFlashDateString()
 		AboutText += _("Last update:\t%s\n") % getEnigmaVersionString()
