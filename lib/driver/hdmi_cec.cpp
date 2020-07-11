@@ -128,10 +128,8 @@ eHdmiCEC::eHdmiCEC()
 	{
 #ifdef DREAMBOX
 #define HDMIDEV "/dev/misc/hdmi_cec0"
-	/*hdmiFd = ::open("/dev/misc/hdmi_cec0", O_RDWR | O_NONBLOCK | O_CLOEXEC);*/
 #else
 #define HDMIDEV "/dev/hdmi_cec"
-        /*hdmiFd = ::open("/dev/hdmi_cec", O_RDWR | O_NONBLOCK | O_CLOEXEC);*/
 #endif
 
 		hdmiFd = ::open(HDMIDEV, O_RDWR | O_NONBLOCK | O_CLOEXEC);
