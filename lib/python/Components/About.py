@@ -81,13 +81,16 @@ def getChipSetString():
 	processor = ""
 	try:
 		if path.isfile('/proc/stb/info/chipset'):
-			processor = "%s (%s)" % (open("/proc/stb/info/chipset").readline().strip().upper(), processor)
+			with open("/proc/stb/info/chipset") as fp:
+				processor = "%s (%s)" % (fp.readline().strip().upper(), processor)
 			return processor
-		for line in open("/proc/cpuinfo").readlines():
+		fd = open("/proc/cpuinfo")
+		for line in fd.readlines():
 			line = [x.strip() for x in line.strip().split(":")]
 			if not processor and line[0] in ("system type", "model name", "Processor"):
 				processor = line[1].split()[0]
 				break
+		fd.close()
 		return processor
 	except IOError:
 		return _("unavailable")
