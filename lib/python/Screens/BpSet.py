@@ -18,6 +18,7 @@ from Plugins.SystemPlugins.NetworkBrowser.NetworkBrowser import NetworkBrowser
 from enigma import eTimer
 from Screens.Console import Console
 import process
+from boxbranding import getBoxType
 
 class DeliteSettings(Screen):
 	skin = """
@@ -966,28 +967,21 @@ class BhSpeedUp(Screen, ConfigListScreen):
 		["MiniDlna UPnP Server", "enigma2-plugin-extensions-dlnaserver"],
 		]
 		
-		machine = self.nab_Detect_Machine()		
+		machine = getBoxType()
 		if machine != "vusolo" and not (machine.endswith("4k") or machine.endswith("4kse")):
 			self.pluglist.append(["Opera browser & HbbTV", "enigma2-plugin-extensions-hbbtv"])
 		elif machine.endswith("4k") or machine.endswith("4kse"):
 			self.pluglist.append(["ChromiumOS", "enigma2-plugin-extensions-chromium"])
 			self.pluglist.append(["HbbTV", "enigma2-plugin-extensions-webkithbbtv"])
-			
-		if machine not in ("vusolo", "vuduo", "vuultimo", "vuuno", "vuzero"):
+		elif machine not in ("vusolo", "vuduo", "vuultimo", "vuuno", "vuzero"):
 			self.pluglist.append(["Kodi", "enigma2-plugin-extensions-kodi"])
-					
-		self.activityTimer = eTimer()
-		self.activityTimer.timeout.get().append(self.updateFeed2)
 		
-		self.updateFeed()
-	
-	def nab_Detect_Machine(self):
-		machine = "dm8000"
-		if fileExists("/etc/bpmachine"):
-			f = open("/etc/bpmachine",'r')
-			machine = f.readline().strip()
-			f.close()
-		return machine
+		if machine == "dm800se":
+			self["lab1"] = Label(_("DM800SE has been Speeded Up Performance..."))
+		else:
+			self.activityTimer = eTimer()
+			self.activityTimer.timeout.get().append(self.updateFeed2)
+			self.updateFeed()
 		
 	def updateFeed(self):
 		self.activityTimer.start(3)
