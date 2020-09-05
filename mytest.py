@@ -38,9 +38,8 @@ profile("ClientMode")
 import Components.ClientMode
 Components.ClientMode.InitClientMode()
 
-profile("SimpleSummary")
+profile("InfoBar")
 from Screens import InfoBar
-from Screens.SimpleSummary import SimpleSummary
 
 from sys import stdout, exc_info
 
@@ -170,7 +169,7 @@ def dump(dir, p = ""):
 profile("LOAD:ScreenGlobals")
 from Screens.Globals import Globals
 from Screens.SessionGlobals import SessionGlobals
-from Screens.Screen import Screen
+from Screens.Screen import Screen, ScreenSummary
 
 profile("Screen")
 Screen.globalScreen = Globals()
@@ -287,7 +286,7 @@ class Session:
 	def instantiateSummaryDialog(self, screen, **kwargs):
 		if self.summary_desktop is not None:
 			self.pushSummary()
-			summary = screen.createSummary() or SimpleSummary
+			summary = screen.createSummary() or ScreenSummary
 			arguments = (screen,)
 			self.summary = self.doInstantiateDialog(summary, arguments, kwargs, self.summary_desktop)
 			self.summary.show()
