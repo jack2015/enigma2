@@ -8,7 +8,6 @@ from Components.PluginComponent import plugins
 from Components.config import config
 from Components.NimManager import nimmanager
 from Components.SystemInfo import SystemInfo
-from boxbranding import getBoxType
 from Tools.BoundFunction import boundFunction
 from Tools.Directories import resolveFilename, SCOPE_SKIN, fileExists
 from enigma import eTimer
@@ -47,26 +46,22 @@ menuupdater = MenuUpdater()
 
 
 class MenuSummary(Screen):
-	
-	if getBoxType() in ('dm800se','dm800','dm800sev2','dm500hd','dm500hdv2','dm7020hd','dm7020hdv2','dm520','dm820','dm7080','dm8000'):
-		pass
-	else:
-		def __init__(self, session, parent):
-			Screen.__init__(self, session, parent=parent)
-			self["MenuTitle"] = StaticText(parent.getTitle())
-			self["MenuEntry"] = StaticText("")
-			self.onShow.append(self.addWatcher)
-			self.onHide.append(self.removeWatcher)
+	def __init__(self, session, parent):
+		Screen.__init__(self, session, parent=parent)
+		self["MenuTitle"] = StaticText(parent.getTitle())
+		self["MenuEntry"] = StaticText("")
+		self.onShow.append(self.addWatcher)
+		self.onHide.append(self.removeWatcher)
 
-		def addWatcher(self):
-			self.parent["menu"].onSelectionChanged.append(self.selectionChanged)
-	 		self.selectionChanged()
+	def addWatcher(self):
+		self.parent["menu"].onSelectionChanged.append(self.selectionChanged)
+ 		self.selectionChanged()
 
-		def removeWatcher(self):
-			self.parent["menu"].onSelectionChanged.remove(self.selectionChanged)
+	def removeWatcher(self):
+		self.parent["menu"].onSelectionChanged.remove(self.selectionChanged)
 
-		def selectionChanged(self):
-			self["MenuEntry"].text = self.parent["menu"].getCurrent()[0]
+	def selectionChanged(self):
+		self["MenuEntry"].text = self.parent["menu"].getCurrent()[0]
 
 
 class Menu(Screen, ProtectedScreen):
