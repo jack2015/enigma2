@@ -12,10 +12,10 @@ from Components.ActionMap import ActionMap, HelpableActionMap, HelpableNumberAct
 from Components.MenuList import MenuList
 from Components.ServiceEventTracker import ServiceEventTracker, InfoBarBase
 from Components.Sources.List import List
+from Components.Sources.StaticText import StaticText
 from Components.SystemInfo import SystemInfo
-from Components.UsageConfig import preferredTimerPath
 from Components.Renderer.Picon import getPiconName
-from Screens.TimerEdit import TimerSanityConflict
+from Screens.TimerEntry import addTimerFromEventSilent
 profile("ChannelSelection.py 1")
 from EpgSelectionSingle import EPGSelectionSingle
 from enigma import eActionMap, eServiceReference, eEPGCache, eServiceCenter, eRCInput, eTimer, ePoint, eDVBDB, iPlayableService, iServiceInformation, getPrevAsciiCode, eEnv, loadPNG, eDVBLocalTimeHandler
@@ -32,9 +32,9 @@ profile("ChannelSelection.py 2.3")
 from Components.Input import Input
 profile("ChannelSelection.py 3")
 from Components.ChoiceList import ChoiceList, ChoiceEntryComponent
-from RecordTimer import RecordTimerEntry, AFTEREVENT, parseEvent
-from TimerEntry import TimerEntry, InstantRecordTimerEntry
-from Screens.InputBox import InputBox, PinInput
+from RecordTimer import AFTEREVENT
+from TimerEntry import TimerEntry
+from Screens.InputBox import PinInput
 from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Screens.ChoiceBox import ChoiceBox
 from Screens.MessageBox import MessageBox
@@ -50,7 +50,6 @@ from Tools.Alternatives import GetWithAlternative
 import Tools.Transponder
 from Plugins.Plugin import PluginDescriptor
 from Components.PluginComponent import plugins
-from Screens.ChoiceBox import ChoiceBox
 from time import localtime, time, strftime
 import re
 try:
@@ -731,9 +730,9 @@ class ChannelSelectionEPG(InfoBarButtonSetup, HelpableScreen):
 			}, prio=-1, description=_("Add timers"))
 		self['dialogactions'] = ActionMap(['OkCancelActions'],
 			{
-				'cancel': (self.closeChoiceBoxDialog, _("Exit channel selection")),
+				'cancel': self.closeChoiceBoxDialog,
 			})
-		self['dialogactions'].execEnd()
+		self['dialogactions'].setEnabled(False)
 
 	def getKeyFunctions(self, key):
 		selection = eval("config.misc.ButtonSetup." + key + ".value.split(',')")
@@ -755,15 +754,6 @@ class ChannelSelectionEPG(InfoBarButtonSetup, HelpableScreen):
 		eventidnext = list[1][0]
 		if eventid is None:
 			return
-		indx = int(self.servicelist.getCurrentIndex())
-		selx = self.servicelist.instance.size().width()
-		while indx+1 > config.usage.serviceitems_per_page.value:
-			indx = indx - config.usage.serviceitems_per_page.value
-		pos = self.servicelist.instance.position().y()
-		sely = int(pos)+(int(self.servicelist.ItemHeight)*int(indx))
-		temp = int(self.servicelist.instance.position().y())+int(self.servicelist.instance.size().height())
-		if int(sely) >= temp:
-			sely = int(sely) - int(self.listHeight)
 		menu1 = _("Record now")
 		menu2 = _("Record next")
 		for timer in self.session.nav.RecordTimer.timer_list:
@@ -773,6 +763,7 @@ class ChannelSelectionEPG(InfoBarButtonSetup, HelpableScreen):
 				menu2 = _("Change next timer")
 		menu = [(menu1, 'CALLFUNC', self.ChoiceBoxCB, self.doRecordCurrentTimer), (menu2, 'CALLFUNC', self.ChoiceBoxCB, self.doRecordNextTimer)]
 		self.ChoiceBoxDialog = self.session.instantiateDialog(ChoiceBox, list=menu, keys=['red', 'green'], skin_name="RecordTimerQuestion")
+		selx, sely = self.servicelist.getSelectionPosition()
 		self.ChoiceBoxDialog.instance.move(ePoint(selx-self.ChoiceBoxDialog.instance.size().width(),self.instance.position().y()+sely))
 		self.showChoiceBoxDialog()
 
@@ -791,12 +782,13 @@ class ChannelSelectionEPG(InfoBarButtonSetup, HelpableScreen):
 		self['recordingactions'].setEnabled(False)
 		self['ChannelSelectEPGActions'].setEnabled(False)
 		self["ChannelSelectBaseActions"].setEnabled(False)
-		self['dialogactions'].execBegin()
+		self["helpActions"].setEnabled(False)
+		self['dialogactions'].setEnabled(True)
 		self.ChoiceBoxDialog['actions'].execBegin()
 		self.ChoiceBoxDialog.show()
 
 	def closeChoiceBoxDialog(self):
-		self['dialogactions'].execEnd()
+		self['dialogactions'].setEnabled(False)
 		if self.ChoiceBoxDialog:
 			self.ChoiceBoxDialog['actions'].execEnd()
 			self.session.deleteDialog(self.ChoiceBoxDialog)
@@ -804,6 +796,7 @@ class ChannelSelectionEPG(InfoBarButtonSetup, HelpableScreen):
 		self['recordingactions'].setEnabled(True)
 		self['ChannelSelectEPGActions'].setEnabled(True)
 		self["ChannelSelectBaseActions"].setEnabled(True)
+		self["helpActions"].setEnabled(True)
 
 	def doRecordCurrentTimer(self):
 		self.doInstantTimer(0)
@@ -828,15 +821,6 @@ class ChannelSelectionEPG(InfoBarButtonSetup, HelpableScreen):
 		eventid, eventname = list[eventIndex]
 		if eventid is None:
 			return
-		indx = int(self.servicelist.getCurrentIndex())
-		selx = self.servicelist.instance.size().width()
-		while indx+1 > config.usage.serviceitems_per_page.value:
-			indx = indx - config.usage.serviceitems_per_page.value
-		pos = self.servicelist.instance.position().y()
-		sely = int(pos)+(int(self.servicelist.ItemHeight)*int(indx))
-		temp = int(self.servicelist.instance.position().y())+int(self.servicelist.instance.size().height())
-		if int(sely) >= temp:
-			sely = int(sely) - int(self.listHeight)
 
 		for timer in self.session.nav.RecordTimer.timer_list:
 			if timer.eit == eventid and ':'.join(timer.service_ref.ref.toString().split(':')[:11]) == refstr:
@@ -851,46 +835,13 @@ class ChannelSelectionEPG(InfoBarButtonSetup, HelpableScreen):
 					cb_func2 = lambda ret: self.editTimer(timer)
 					menu = [(_("Delete Timer"), 'CALLFUNC', self.RemoveTimerDialogCB, cb_func1), (_("Edit Timer"), 'CALLFUNC', self.RemoveTimerDialogCB, cb_func2)]
 					self.ChoiceBoxDialog = self.session.instantiateDialog(ChoiceBox, title=_("Select action for timer %s:") % eventname, list=menu, keys=['green', 'blue'], skin_name="RecordTimerQuestion")
+					selx, sely = self.serviceList.getSelectionPosition()
 					self.ChoiceBoxDialog.instance.move(ePoint(selx-self.ChoiceBoxDialog.instance.size().width(),self.instance.position().y()+sely))
 				self.showChoiceBoxDialog()
 				break
 		else:
 			event = epgCache.lookupEventId(serviceref.ref, eventid)
-			newEntry = RecordTimerEntry(serviceref, checkOldTimers = True, dirname = preferredTimerPath(), *parseEvent(event, service=serviceref))
-			if not newEntry:
-				return
-			self.InstantRecordDialog = self.session.instantiateDialog(InstantRecordTimerEntry, newEntry, zap)
-			retval = [True, self.InstantRecordDialog.retval()]
-			self.session.deleteDialogWithCallback(self.finishedAdd, self.InstantRecordDialog, retval)
-
-	def finishedAdd(self, answer):
-		# print "finished add"
-		if answer[0]:
-			entry = answer[1]
-			simulTimerList = self.session.nav.RecordTimer.record(entry)
-			if simulTimerList is not None:
-				for x in simulTimerList:
-					if x.setAutoincreaseEnd(entry):
-						self.session.nav.RecordTimer.timeChanged(x)
-				simulTimerList = self.session.nav.RecordTimer.record(entry)
-				if simulTimerList is not None:
-					if not entry.repeated and not config.recording.margin_before.value and not config.recording.margin_after.value and len(simulTimerList) > 1:
-						change_time = False
-						conflict_begin = simulTimerList[1].begin
-						conflict_end = simulTimerList[1].end
-						if conflict_begin == entry.end:
-							entry.end -= 30
-							change_time = True
-						elif entry.begin == conflict_end:
-							entry.begin += 30
-							change_time = True
-						if change_time:
-							simulTimerList = self.session.nav.RecordTimer.record(entry)
-					if simulTimerList is not None:
-						self.session.openWithCallback(self.finishSanityCorrection, TimerSanityConflict, simulTimerList)
-
-	def finishSanityCorrection(self, answer):
-		self.finishedAdd(answer)
+			addTimerFromEventSilent(self.session, None, event, serviceref)
 
 	def removeTimer(self, timer):
 		timer.afterEvent = AFTEREVENT.NONE
@@ -935,7 +886,7 @@ class ChannelSelectionEdit:
 				else:
 					return HelpableActionMap.action(self, contexts, action)
 
-		self["ChannelSelectEditActions"] = ChannelSelectionEditActionMap(self, ["ChannelSelectEditActions", "OkCancelActions"],
+		self["ChannelSelectEditActions"] = ChannelSelectionEditActionMap(self, ["ChannelSelectEditActions"],
 			{
 				"contextMenu": (self.doContext, _("Open menu")),
 			}, description=_("Menu"))
@@ -1365,6 +1316,9 @@ class ChannelSelectionBase(Screen, HelpableScreen):
 		self["key_green"] = Button(_("Satellites"))
 		self["key_yellow"] = Button(_("Providers"))
 		self["key_blue"] = Button(_("Favourites"))
+		
+		self["key_menu"] = StaticText(_("MENU"))
+		self["key_info"] = StaticText(_("INFO"))
 
 		self["list"] = ServiceList(self)
 		self.servicelist = self["list"]
@@ -1781,43 +1735,25 @@ class ChannelSelectionBase(Screen, HelpableScreen):
 
 	def _prevNextBouquetHelp(self, prev=False):
 		if ("reverseB" in config.usage.servicelist_cursor_behavior.value) == prev:
-			if config.usage.channelbutton_mode.value == '0':
-				return _("Move up in bouquet list")
-			else:
-				return _("Move up in channel list")
+			return _("Move up in bouquet list")
 		else:
-			if config.usage.channelbutton_mode.value == '0':
-				return _("Move down in bouquet list")
-			else:
-				return _("Move down in channel list")
+			return _("Move down in bouquet list")
 
 	def nextBouquet(self):
 		if "reverseB" in config.usage.servicelist_cursor_behavior.value:
-			if config.usage.channelbutton_mode.value == '0':
-				self.changeBouquet(-1)
-			else:
-				self.servicelist.moveDown()
+			self.changeBouquet(-1)
 		else:
-			if config.usage.channelbutton_mode.value == '0':
-				self.changeBouquet(+1)
-			else:
-				self.servicelist.moveUp()
+			self.changeBouquet(+1)
 
 	def prevBouquet(self):
 		if "reverseB" in config.usage.servicelist_cursor_behavior.value:
-			if config.usage.channelbutton_mode.value == '0':
-				self.changeBouquet(+1)
-			else:
-				self.servicelist.moveUp()
+			self.changeBouquet(+1)
 		else:
-			if config.usage.channelbutton_mode.value == '0':
-				self.changeBouquet(-1)
-			else:
-				self.servicelist.moveDown()
+			self.changeBouquet(-1)
 
 	def toggleTwoLines(self):
 		if config.usage.setup_level.index > 1 and not self.pathChangeDisabled and self.servicelist.mode == self.servicelist.MODE_FAVOURITES:
-			config.usage.servicelist_twolines.value = not config.usage.servicelist_twolines.value
+			config.usage.servicelist_twolines.selectNext()
 			config.usage.servicelist_twolines.save()
 		else:
 			return 0
@@ -2065,8 +2001,8 @@ class ChannelSelection(ChannelSelectionEdit, ChannelSelectionBase, ChannelSelect
 			{
 				"cancel": self.cancel,
 				"ok": self.channelSelected,
-				"keyRadio": self.setModeRadio,
-				"keyTV": self.setModeTv,
+				"keyRadio": self.keyRadio,
+				"keyTV": self.keyTV,
 			})
 
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap=
@@ -2099,6 +2035,7 @@ class ChannelSelection(ChannelSelectionEdit, ChannelSelectionBase, ChannelSelect
 		self.onExecBegin.append(self.asciiOn)
 		self.mainScreenMode = None
 		self.mainScreenRoot = None
+		self.radioTV = 0
 
 		self.lastChannelRootTimer = eTimer()
 		self.lastChannelRootTimer.callback.append(self.__onCreate)
@@ -2129,6 +2066,25 @@ class ChannelSelection(ChannelSelectionEdit, ChannelSelectionBase, ChannelSelect
 
 	def __evServiceEnd(self):
 		self.servicelist.setPlayableIgnoreService(eServiceReference())
+
+	def keyTV(self):
+		if SystemInfo["toggleTvRadioButtonEvents"]:
+			self.toogleTvRadio()
+		else:
+			self.setModeTv()
+
+	def keyRadio(self):
+		if SystemInfo["toggleTvRadioButtonEvents"]:
+			self.toogleTvRadio()
+		else:
+			self.setModeRadio()
+
+	def toogleTvRadio(self):
+		if self.radioTV:
+			self.setModeTv() 
+		else:
+			self.setModeRadio()
+		self.radioTV ^= 1
 
 	def setMode(self):
 		self.rootChanged = True
@@ -2763,6 +2719,7 @@ class ChannelSelectionRadio(ChannelSelectionEdit, ChannelSelectionBase, ChannelS
 				"keyRadio": self.cancel,
 				"cancel": self.cancel,
 				"ok": self.channelSelected,
+				"audio": self.audioSelection,
 			})
 
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap=
@@ -2896,6 +2853,9 @@ class ChannelSelectionRadio(ChannelSelectionEdit, ChannelSelectionBase, ChannelS
 	def zapBack(self):
 		self.channelSelected()
 
+	def audioSelection(self):
+		Screens.InfoBar.InfoBar.instance and Screens.InfoBar.InfoBar.instance.audioSelection()
+
 class SimpleChannelSelection(ChannelSelectionBase):
 	def __init__(self, session, title, currentBouquet=False):
 		ChannelSelectionBase.__init__(self, session)
@@ -2909,6 +2869,7 @@ class SimpleChannelSelection(ChannelSelectionBase):
 		self.bouquet_mark_edit = OFF
 		self.title = title
 		self.currentBouquet = currentBouquet
+		self.radioTV = 0
 		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
@@ -2933,6 +2894,25 @@ class SimpleChannelSelection(ChannelSelectionBase):
 		elif not (ref.flags & eServiceReference.isMarker):
 			ref = self.getCurrentSelection()
 			self.close(ref)
+
+	def keyTV(self):
+		if SystemInfo["toggleTvRadioButtonEvents"]:
+			self.toogleTvRadio()
+		else:
+			self.setModeTv()
+
+	def keyRadio(self):
+		if SystemInfo["toggleTvRadioButtonEvents"]:
+			self.toogleTvRadio()
+		else:
+			self.setModeRadio()
+
+	def toogleTvRadio(self):
+		if self.radioTV:
+			self.setModeTv() 
+		else:
+			self.setModeRadio()
+		self.radioTV ^= 1
 
 	def setModeTv(self):
 		self.setTvMode()

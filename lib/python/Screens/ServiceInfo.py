@@ -45,9 +45,9 @@ def ServiceInfoListEntry(a, b="", valueType=TYPE_TEXT, param=4):
 			b = ("%d.%d%s") % (b // 10, b % 10, direction)
 		else:
 			b = str(b)
-	x, y, w, h = skin.parameters.get("ServiceInfo",(0, 0, 300, 30))
-	xa, ya, wa, ha = skin.parameters.get("ServiceInfoLeft",(0, 0, 300, 25))
-	xb, yb, wb, hb = skin.parameters.get("ServiceInfoRight",(300, 0, 600, 25))
+	x, y, w, h = skin.parameters.get("ServiceInfo",(0, 0, skin.applySkinFactor(300), skin.applySkinFactor(30)))
+	xa, ya, wa, ha = skin.parameters.get("ServiceInfoLeft",(0, 0, skin.applySkinFactor(300), skin.applySkinFactor(25)))
+	xb, yb, wb, hb = skin.parameters.get("ServiceInfoRight",(skin.applySkinFactor(300), 0, skin.applySkinFactor(600), skin.applySkinFactor(25)))
 	if b:
 		return [
 			#PyObject *type, *px, *py, *pwidth, *pheight, *pfnt, *pstring, *pflags;
@@ -81,7 +81,7 @@ class ServiceInfoList(GUIComponent):
 					self.fontName = font.family
 					self.fontSize = font.pointSize
 				elif attrib == "itemHeight":
-					self.ItemHeight = int(value)
+					self.ItemHeight = skin.parseScale(value)
 				else:
 					attribs.append((attrib,value))
 			self.skinAttributes = attribs

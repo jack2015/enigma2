@@ -83,7 +83,7 @@ class ConfigElement(object):
 		self.__notifiers = None
 		self.__notifiers_final = None
 		self.enabled = True
-		self.callNotifiersOnSaveAndCancel = False  # this flag only affects notifiers set with "immediate_feedback = False". If set to false the notifier will never run on save/exit by default.
+		self.callNotifiersOnSaveAndCancel = False  # this is here for compatibility only. Do not use.
 
 	def getNotifiers(self):
 		if self.__notifiers is None:
@@ -126,6 +126,7 @@ class ConfigElement(object):
 			self.value = self.default
 		else:
 			self.value = self.fromstring(sv)
+		self.last_value = self.tostring(self.value)
 
 	def tostring(self, value):
 		return str(value)
@@ -139,13 +140,13 @@ class ConfigElement(object):
 			self.saved_value = None
 		else:
 			self.saved_value = self.tostring(self.value)
-		if self.callNotifiersOnSaveAndCancel:
-			self.changedFinal()  # call none immediate_feedback notifiers, immediate_feedback Notifiers are called as they are chanaged, so do not need to be called here.
+		
+		if self.last_value != self.tostring(self.value):
+			self.last_value = self.tostring(self.value)
+			self.changedFinal()
 
 	def cancel(self):
 		self.load()
-		if self.callNotifiersOnSaveAndCancel:
-			self.changedFinal()  # call none immediate_feedback notifiers, immediate_feedback Notifiers are called as they are chanaged, so do not need to be called here.
 
 	def isChanged(self):
 		# NOTE - self.saved_value should already be stringified!
@@ -173,6 +174,17 @@ class ConfigElement(object):
 					x(self)
 
 	def addNotifier(self, notifier, initial_call=True, immediate_feedback=True, extra_args=None):
+		# "initial_call=True" triggers the notifier as soon as "addNotifier" is encountered in the code. 
+		#
+		# "initial_call=False" skips the above activation of the notifier.
+		#
+		# "immediate_feedback=True" notifiers are called on every single change of the config item,  
+		# e.g. if going left/right through a ConfigSelection it will trigger on every step.
+		#
+		# "immediate_feedback=False" notifiers are called on ConfigElement.save() only. 
+		# 
+		# Use of the "self.callNotifiersOnSaveAndCancel" flag serves no purpose in the current code.
+		#
 		assert callable(notifier), "notifiers must be callable"
 		if extra_args is not None:
 			self.__addExtraArgs(notifier, extra_args)
@@ -221,8 +233,7 @@ class ConfigElement(object):
 		pass
 
 	def onDeselect(self, session):
-		if not self.last_value == self.value:
-			self.last_value = self.value
+		pass
 
 	def hideHelp(self, session):
 		pass
@@ -281,6 +292,8 @@ class choicesList(object):  # XXX: we might want a better name for this
 		return len(self.choices) or 1
 
 	def __getitem__(self, index):
+		if index == 0 and not self.choices:
+			return ""
 		if self.type == choicesList.LIST_TYPE_LIST:
 			ret = self.choices[index]
 			if isinstance(ret, tuple):
@@ -296,6 +309,8 @@ class choicesList(object):  # XXX: we might want a better name for this
 			return 0
 
 	def __setitem__(self, index, value):
+		if index == 0 and not self.choices:
+			return
 		if self.type == choicesList.LIST_TYPE_LIST:
 			orig = self.choices[index]
 			if isinstance(orig, tuple):
@@ -344,6 +359,8 @@ class descriptionList(choicesList):  # XXX: we might want a better name for this
 			return str(self.choices.get(index, ""))
 
 	def __setitem__(self, index, value):
+		if not self.choices:
+			return
 		if self.type == choicesList.LIST_TYPE_LIST:
 			i = self.index(index)
 			orig = self.choices[i]
@@ -394,7 +411,8 @@ class ConfigSelection(ConfigElement):
 			default = self.choices.default()
 
 		self._descr = None
-		self.default = self._value = self.last_value = default
+		self.default = self._value = default
+		self.last_value = self.tostring(default)
 		self.graphic = graphic
 
 	def setChoices(self, choices, default=None):
@@ -433,6 +451,7 @@ class ConfigSelection(ConfigElement):
 			self.value = self.default
 		else:
 			self.value = self.choices[self.choices.index(sv)]
+		self.last_value = self.tostring(self.value)
 
 	def setCurrentText(self, text):
 		i = self.choices.index(self.value)
@@ -506,9 +525,10 @@ class ConfigSelection(ConfigElement):
 # Several customized versions exist for different descriptions.
 #
 class ConfigBoolean(ConfigElement):
-	def __init__(self, default=False, descriptions={False: _("false"), True: _("true")}, graphic=True):
+	def __init__(self, default=False, descriptions={False: _("False"), True: _("True")}, graphic=True):
 		ConfigElement.__init__(self)
-		self.value = self.last_value = self.default = default
+		self.value = self.default = default
+		self.last_value = self.tostring(self.value)
 		self.descriptions = descriptions
 		self.graphic = graphic
 
@@ -521,15 +541,15 @@ class ConfigBoolean(ConfigElement):
 			self.value = True
 
 	def fromstring(self, val):
-		return str(val).lower() in ("1", "enable", "on", "true", "yes")
+		return str(val).lower() in self.trueValues()
 
 	def tostring(self, value):
-		return "True" if value or str(value).lower() in ("1", "enable", "on", "true", "yes") else "False"
+		return "True" if value and str(value).lower() in self.trueValues() else "False"
 		# Use the following if settings should be saved using the same values as displayed to the user.
 		# self.descriptions[True] if value or str(value).lower() in ("1", "enable", "on", "true", "yes") else self.descriptions[True]
 
 	def toDisplayString(self, value):
-		return self.descriptions[True] if value or str(value).lower() in ["true", self.descriptions[True].lower()] else self.descriptions[False]
+		return self.descriptions[True] if value or str(value).lower() in self.trueValues() else self.descriptions[False]
 
 	def getText(self):
 		return self.descriptions[self.value]
@@ -541,33 +561,32 @@ class ConfigBoolean(ConfigElement):
 			return ('pixmap', switchPixmap["menu_on" if self.value else "menu_off"])
 		return ("text", self.descriptions[self.value])
 
-	def onDeselect(self, session):
-		if self.last_value != self.value:
-			self.changedFinal()
-			self.last_value = self.value
-
 	# For HTML Interface - Is this still used?
 
 	def getHTML(self, id):  # DEBUG: Is this still used?
 		return "<input type=\"checkbox\" name=\"%s\" value=\"1\"%s />" % (id, " checked=\"checked\"" if self.value else "")
 
 	def unsafeAssign(self, value):  # DEBUG: Is this still used?
-		self.value = value.lower() in ("1", "enable", "on", "true", "yes")
+		self.value = value.lower() in self.trueValues()
+
+	def trueValues(self):
+		# This should be set in the __init__() but has been done this way as a workaround for a stupid broken plugin that fails to call ConfigBoolean.__init__().
+		return ("1", "enable", "on", "true", "yes")
 
 
 class ConfigEnableDisable(ConfigBoolean):
 	def __init__(self, default=False, graphic=True):
-		ConfigBoolean.__init__(self, default=default, descriptions={False: _("disable"), True: _("enable")}, graphic=graphic)
+		ConfigBoolean.__init__(self, default=default, descriptions={False: _("Disable"), True: _("Enable")}, graphic=graphic)
 
 
 class ConfigOnOff(ConfigBoolean):
 	def __init__(self, default=False, graphic=True):
-		ConfigBoolean.__init__(self, default=default, descriptions={False: _("off"), True: _("on")}, graphic=graphic)
+		ConfigBoolean.__init__(self, default=default, descriptions={False: _("Off"), True: _("On")}, graphic=graphic)
 
 
 class ConfigYesNo(ConfigBoolean):
 	def __init__(self, default=False, graphic=True):
-		ConfigBoolean.__init__(self, default=default, descriptions={False: _("no"), True: _("yes")}, graphic=graphic)
+		ConfigBoolean.__init__(self, default=default, descriptions={False: _("No"), True: _("Yes")}, graphic=graphic)
 
 
 class ConfigDateTime(ConfigElement):
@@ -575,7 +594,8 @@ class ConfigDateTime(ConfigElement):
 		ConfigElement.__init__(self)
 		self.increment = increment
 		self.formatstring = formatstring
-		self.value = self.last_value = self.default = int(default)
+		self.value = self.default = int(default)
+		self.last_value = self.tostring(self.value)
 
 	def handleKey(self, key):
 		if key == KEYA_LEFT:
@@ -614,8 +634,9 @@ class ConfigSequence(ConfigElement):
 		self.limits = limits
 		self.censor_char = censor_char
 
-		self.last_value = self.default = default
+		self.default = default
 		self.value = copy_copy(default)
+		self.last_value = self.tostring(self.value)
 		self.endNotifier = None
 
 	def validate(self):
@@ -757,11 +778,6 @@ class ConfigSequence(ConfigElement):
 		ret = [int(x) for x in value.split(self.seperator)]
 		return ret + [int(x[0]) for x in self.limits[len(ret):]]
 
-	def onDeselect(self, session):
-		if self.last_value != self._value:
-			self.changedFinal()
-			self.last_value = copy_copy(self._value)
-
 
 ip_limits = [(0, 255), (0, 255), (0, 255), (0, 255)]
 class ConfigIP(ConfigSequence):
@@ -863,7 +879,8 @@ class ConfigMacText(ConfigElement, NumericalTextInput):
 		self.offset = 0
 		self.overwrite = 17
 		self.help_window = None
-		self.value = self.last_value = self.default = default
+		self.value = self.default = default
+		self.last_value = self.tostring(self.value)
 		self.useableChars = '0123456789ABCDEF'
 
 	def validateMarker(self):
@@ -975,9 +992,6 @@ class ConfigMacText(ConfigElement, NumericalTextInput):
 		if self.help_window:
 			session.deleteDialog(self.help_window)
 			self.help_window = None
-		if not self.last_value == self.value:
-			self.changedFinal()
-			self.last_value = self.value
 
 	def getHTML(self, id):
 		return '<input type="text" name="' + id + '" value="' + self.value + '" /><br>\n'
@@ -1169,7 +1183,8 @@ class ConfigText(ConfigElement, NumericalTextInput):
 		self.offset = 0
 		self.overwrite = fixed_size
 		self.help_window = None
-		self.value = self.last_value = self.default = default
+		self.value = self.default = default
+		self.last_value = self.tostring(self.value)
 
 	def validateMarker(self):
 		textlen = len(self.text)
@@ -1345,9 +1360,6 @@ class ConfigText(ConfigElement, NumericalTextInput):
 		if self.help_window:
 			session.deleteDialog(self.help_window)
 			self.help_window = None
-		if not self.last_value == self.value:
-			self.changedFinal()
-			self.last_value = self.value
 
 	def hideHelp(self, session):
 		if session is not None and self.help_window is not None:
@@ -1482,9 +1494,6 @@ class ConfigNumber(ConfigText):
 	def onDeselect(self, session):
 		self.marked_pos = 0
 		self.offset = 0
-		if not self.last_value == self.value:
-			self.changedFinal()
-			self.last_value = self.value
 
 class ConfigSearchText(ConfigText):
 	def __init__(self, default="", fixed_size=False, visible_width=False):
@@ -1522,7 +1531,8 @@ class ConfigDirectory(ConfigText):
 class ConfigSlider(ConfigElement):
 	def __init__(self, default=0, increment=1, limits=(0, 100)):
 		ConfigElement.__init__(self)
-		self.value = self.last_value = self.default = default
+		self.value = self.default = default
+		self.last_value = self.tostring(self.value)
 		self.min = limits[0]
 		self.max = limits[1]
 		self.increment = increment
@@ -1585,8 +1595,9 @@ class ConfigSet(ConfigElement):
 		if default is None:
 			default = []
 		default.sort()
-		self.last_value = self.default = default
+		self.default = default
 		self.value = default[:]
+		self.last_value = self.tostring(self.value)
 		self.pos = 0
 
 	def handleKey(self, key):
@@ -1621,6 +1632,7 @@ class ConfigSet(ConfigElement):
 		if not isinstance(self.value, list):
 			self.value = list(self.value)
 		self.value.sort()
+		self.last_value = self.tostring(self.value[:])
 
 	def fromstring(self, val):
 		return eval(val)
@@ -1654,9 +1666,7 @@ class ConfigSet(ConfigElement):
 
 	def onDeselect(self, session):
 		# self.pos = 0  # Enable this to reset the position marker to the first element.
-		if self.last_value != self.value:
-			self.changedFinal()
-			self.last_value = self.value[:]
+		pass
 
 	description = property(lambda self: descriptionList(self.choices.choices, choicesList.LIST_TYPE_LIST))
 

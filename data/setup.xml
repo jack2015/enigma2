@@ -1,5 +1,4 @@
 <!--suppress XmlUnboundNsPrefix -->
-<!-- "menuTitle" attribute is optional. If present it will be used as the item title in the menu. It will also be used as the header in setup screens when menu path is enabled. -->
 <setupxml>
 	<setup key="time" title="Time">
 		<item level="0" text="Time zone area" description="Select your time zone area or region.">config.timezone.area</item>
@@ -13,7 +12,8 @@
 	<setup key="avsetup" title="A/V settings">
 		<!-- This is just a placeholder, the Videomode plugin implements this submenu -->
 	</setup>
-	<setup key="usage" title="Customise settings" menuTitle="Customise">
+
+	<setup key="usage" title="Customise settings">
 		<item level="0" text="Setup mode" description="Choose which level of menu/settings to display. 'Expert' level shows all items.">config.usage.setup_level</item>
 		<item level="0" text="Task warning on shutdown" description="On shutdown/restart warn about any pending jobs being carried out in the background.">config.usage.task_warning</item>
 		<item level="1" text="Enable teletext caching" description="When enabled, teletext pages will be cached, allowing faster access.">config.usage.enable_tt_caching</item>
@@ -23,7 +23,7 @@
 		<item level="2" text="Require authentication for http streams" description="When enabled, authentication is required to watch http streams.">config.streaming.authentication</item>
 		<item level="2" text="Wake On LAN" description="When enabled the set top box is able to wakeup on LAN" requires="WakeOnLAN">config.usage.wakeOnLAN</item>
 	</setup>
-	<setup key="tunermisc" title="Tuner miscellaneous" menuTitle="Miscellaneous" showOpenWebIF="1">
+	<setup key="tunermisc" title="Tuner miscellaneous" showOpenWebIF="1">
 		<item level="1" text="12V output" description="12V output." requires="12V_Output">config.usage.output_12V</item>
 		<item level="2" text="Preferred tuner" description="Configure which tuner will be preferred, when more than one tuner is available. If set to 'auto' the system will give priority to the tuner having the lowest number of channels/satellites.">config.usage.frontend_priority</item>
 		<item level="2" text="Preferred tuner DVB-S" description="When enabled, this setting has more weight than 'Preferred tuner'." requires="DVB-S_priority_tuner_available">config.usage.frontend_priority_dvbs</item>
@@ -41,9 +41,10 @@
 		<item level="2" text="Ignore DVB-T namespace sub network" description="On valid ONIDs, ignore frequency sub network part">config.usage.subnetwork_terrestrial</item>
 		<item level="2" text="Alternative services tuner priority" description="Configure which tuner type will be preferred, when the same service is available on different types of tuners.">config.usage.alternatives_priority</item>
 	</setup>
-	<setup key="userinterface" title="GUI settings" menuTitle="Settings">
+	<setup key="userinterface" title="GUI settings">
 		<item level="0" text="1st Infobar timeout" description="Set the time delay before hiding the infobar.">config.usage.infobar_timeout</item>
 		<item level="0" text="Show second infobar" description="Configure whether (and for how long) a second infobar will be shown when OK is pressed twice. The second infobar contains additional information about the current channel.">config.usage.show_second_infobar</item>
+		<item level="2" text="Second infobar style*" description="Choose the style of the second infobar. The 'Standard' view normally includes technical data. The 'Simple' view shows minimal technical data." requires="SecondInfoBarSimple">config.usage.second_infobar_simple</item>
 		<item level="0" text="Always use second infobar" description="Always show second infobar instead of standard infobar.">config.usage.fix_second_infobar</item>
 		<item level="0" text="Enable infobar fade-out" description="Fade the infobar when hiding">config.usage.show_infobar_do_dimming</item>
 		<item level="0" text="Infobar fade-out speed" description="Configure the infobar fading speed">config.usage.show_infobar_dimming_speed</item>
@@ -82,6 +83,7 @@
 		<item level="1" text="Behavior of 0 key in PiP-mode" description="Choose what you want the '0' button to do when PIP is active.">config.usage.pip_zero_button</item>
 		<item level="1" text="History buttons mode" description="Configure the function of the &lt;  &gt; buttons.">config.usage.historymode</item>
 		<item level="2" text="Show True/False as graphical switch" description="Enable to display all true/false, yes/no, on/off and enable/disable set up options as a graphical switch.">config.usage.boolean_graphic</item>
+		<item level="2" text="Allow fast skin reload" requires="DeveloperImage" description="When changing skins this allows the skin to load without requiring an enigma restart.">config.usage.fast_skin_reload</item>
 	</setup>
 	<setup key="channelselection" title="Channel selection">
 		<item level="1" text="Alternative numbering mode" description="When enabled, channel numbering will start at '1' for every bouquet.">config.usage.alternative_number_mode</item>
@@ -97,12 +99,12 @@
 		<item level="1" text="Jump first press in channel selection" description="This option allows you to choose what the first button press jumps to in channel list screen, (so pressing '2' jumps to 'A' or '2' first), when 'Quick Actions' preset actions are perfomed. ">config.usage.show_channel_jump_in_servicelist</item>
 		<item level="0" text="Show event-progress in channel selection" description="Set the type of the progress indication in the channel selection screen.">config.usage.show_event_progress_in_servicelist</item>
 		<item level="0" text="Show channel numbers in channel selection" description="When enabled, show channel numbers in the channel selection screen.">config.usage.show_channel_numbers_in_servicelist</item>
-		<item level="2" text="Show two lines per entry" description="Show service name and event description above and below each other instead of side by side.">config.usage.servicelist_twolines</item>
+		<item level="2" text="Show two lines per entry" description="Show the service information on two lines in the channel selection screen. You can choose between the current event description below the channel name, or the current event description next to the channel name, and the next event description on the second line.">config.usage.servicelist_twolines</item>
 		<item level="1" text="Show crypto icons" description="Configure if and how crypto icons will be shown in the channel selection list.">config.usage.crypto_icon_mode</item>
 		<item level="1" text="Show service type icons" description="Configure if and how service type icons will be shown.">config.usage.servicetype_icon_mode</item>
 		<item level="1" text="Show record indicator" description="Configure if and how the record indicator will be shown in the channel selection list.">config.usage.record_indicator_mode</item>
 		<item level="1" text="Show picons in service list" description="Configure if picons will be shown in the service list.">config.usage.service_icon_enable</item>
-		<item level="1" text="Show columns" conditional="not config.usage.servicelist_twolines.value" description="Configure if and how wide the service name column will be shown in the channel selection list.">config.usage.servicelist_column</item>
+		<item level="1" text="Show columns" conditional="config.usage.servicelist_twolines.value == '0'" description="Configure if and how wide the service name column will be shown in the channel selection list.">config.usage.servicelist_column</item>
 		<item level="1" text="Number of rows" description="This allows you to change the number of rows shown.">config.usage.serviceitems_per_page</item>
 		<item level="1" text="Service number font size" description="This allows you to change the font size relative to skin size, so 1 increases by 1 point size, and -1 decreases by 1 point size">config.usage.servicenum_fontsize</item>
 		<item level="1" text="Service name font size" description="This allows you to change the font size relative to skin size, so 1 increases by 1 point size, and -1 decreases by 1 point size">config.usage.servicename_fontsize</item>
@@ -113,15 +115,15 @@
 		<item level="1" text="Zap mode" requires="ZapMode" description="Setup how to control the channel changing.">config.misc.zapmode</item>
 		<item level="2" text="Number of digits in channel number" description="This allows you to set the number of digits you can input when selecting channels using number input.">config.usage.maxchannelnumlen</item>
 	</setup>
-	<setup key="epgsettings" title="EPG settings" menuTitle="Settings">
-		<item level="2" text="EPG location" description="Choose the location where the EPG data will be stored when the %s %s is shut down. The location must be available at boot time.">config.misc.epgcachepath</item>
+	<setup key="epgsettings" title="EPG settings">
+		<item level="2" text="EPG location" description="Choose the location where the EPG data will be saved when the %s %s is shut down. The location must be available at boot time.">config.misc.epgcachepath</item>
 		<item level="2" text="EPG filename" description="Choose the name of the file that holds the EPG data when the %s %s is shut down. This can be handy to differentiate between several boxes.">config.misc.epgcachefilename</item>
 		<item level="0" text="EPG button action" description="Choose what will be displayed when the 'EPG' button is pressed.">config.usage.defaultEPGType</item>
-		<item level="2" text="Automatic refresh" description="Allows the %s %s to read the stored EPG data regularly.">config.epg.cacheloadsched</item>
-		<item level="2" text="Refresh every (in hours)" requires="config.epg.cacheloadsched" description="The %s %s reads the stored EPG data every (hours).">config.epg.cacheloadtimer</item>
-		<item level="2" text="Automatic save" description="Allows the %s %s to store the EPG data regularly.">config.epg.cachesavesched</item>
-		<item level="2" text="Save every (in hours)" requires="config.epg.cachesavesched" description="The %s %s stores the EPG data every (hours).">config.epg.cachesavetimer</item>
-		<item level="2" text="Show EIT now/next in infobar" description="Display the EIT now/next eventdata in infobar.">config.usage.show_eit_nownext</item>
+		<item level="2" text="Automatic save" description="Allows the %s %s to save the EPG data regularly.">config.epg.cachesavesched</item>
+		<item level="2" text="Save every (in hours)" requires="config.epg.cachesavesched" description="The %s %s saves the EPG data every (hours).">config.epg.cachesavetimer</item>
+		<item level="2" text="Automatic reload" description="Allows the %s %s to load the saved EPG data regularly.">config.epg.cacheloadsched</item>
+		<item level="2" text="Reload every (in hours)" requires="config.epg.cacheloadsched" description="The %s %s loads the saved EPG data every (hours).">config.epg.cacheloadtimer</item>
+		<item level="2" text="Show EIT now/next in infobar" description="Display the EIT now/next event data in infobar.">config.usage.show_eit_nownext</item>
 		<item level="2" text="Enable EIT EPG" description="Use EIT EPG information when it is available.">config.epg.eit</item>
 		<item level="2" text="Enable MHW EPG" description="Use MHW EPG information when it is available.">config.epg.mhw</item>
 		<item level="2" text="Enable FreeSat EPG" description="Use FreeSat EPG information when it is available.">config.epg.freesat</item>
@@ -208,13 +210,14 @@
 		<item level="1" text="Show picons in timer list" description="Configure if picons will be shown in the timer list.">config.usage.timerlist_showpicons</item>
 		<item level="1" text="Position of finished timers in timer list" description="Control how finished timers are shown in the timer list. If set to hide, disabled timers will still be shown">config.usage.timerlist_finished_timer_position</item>
 		<item level="2" text="Remove finished timers after (days)" description="Configure the number of days old timers are kept before they are automatically removed from the timer list.">config.recording.keep_timers</item>
+		<item level="2" text="Remove finished timer logs after (days)" description="Configure the number of days old timers' log details are kept before they're automatically removed.">config.recording.keep_finished_timer_logs</item>
 		<item level="2" text="Offline decode delay (ms)" description="Configure the offline decoding delay (in milliseconds). The configured delay is observed at each control word parity change.">config.recording.offline_decode_delay</item>
 		<item level="2" text="Default recording type" description="Descramble &amp; record ECM' gives the option to descramble afterwards if descrambling on recording failed. 'Don't descramble, record ECM' save a scramble recording that can be descrambled on playback. 'Normal' means descramble the recording and don't record ECM.">config.recording.ecm_data</item>
 	</setup>
-	<setup key="harddisk" title="HDD settings" menuTitle="Settings">
+	<setup key="harddisk" title="HDD settings">
 		<item level="0" text="Hard disk standby after" description="Configure duration of inactivity before the hard disk drive goes to standby">config.usage.hdd_standby</item>
 	</setup>
-	<setup key="network" title="Network settings" menuTitle="Settings">
+	<setup key="network" title="Network settings">
 		<item text="Use DHCP" description="When enabled, use DHCP for the IP configuration.">config.network.dhcp</item>
 		<item text="IP address" description="Configure the IP address.">config.network.ip</item>
 		<item text="Netmask" description="Configure the netmask.">config.network.netmask</item>
@@ -222,7 +225,7 @@
 		<item text="Nameserver" description="Configure the nameserver (DNS).">config.network.dns</item>
 		<item text="Activate network settings" description="Activate the configured network settings.">config.network.activate</item>
 	</setup>
-	<setup key="RFmod" title="RF output settings" menuTitle="Settings">
+	<setup key="RFmod" title="RF output settings">
 		<item level="1" text="Modulator">config.rfmod.enable</item>
 		<item level="2" text="Test mode">config.rfmod.test</item>
 		<item level="2" text="Sound">config.rfmod.sound</item>
@@ -230,10 +233,10 @@
 		<item level="1" text="Channel">config.rfmod.channel</item>
 		<item level="1" text="Finetune">config.rfmod.finetune</item>
 	</setup>
-	<setup key="keyboard" title="Keyboard settings" menuTitle="Settings">
+	<setup key="keyboard" title="Keyboard settings">
 		<item level="0" text="Keyboard map">config.keyboard.keymap</item>
 	</setup>
-	<setup key="display" title="Front panel settings" menuTitle="Settings" requires="FrontpanelDisplay">
+	<setup key="display" title="Front panel settings" requires="FrontpanelDisplay">
 		<item level="0" text="Use separate Picon pack for Front Display" description="Use piconlcd directory for picons on color LCD">config.lcd.picon_pack</item>
 		<item level="0" text="Show MiniTV in the Front Display" description="You can Display MiniTV with or without OSD Menu" requires="LCDMiniTV">config.lcd.minitvmode</item>
 		<item level="0" text="Show PIP in the Front Display" description="You can Display PIP with or without OSD Menu" requires="LCDMiniTVPiP">config.lcd.minitvpipmode</item>
@@ -284,14 +287,14 @@
 		<item text="Latitude" description="Configure the latitude of your location.">config.sat.diseqcb</item>
 		<item text="Use power measurement" description="When enabled, measure power consumption to detect when the rotor stops turning (when supported by the tuner)." >config.sat.diseqcc</item>
 	</setup>
-	<setup key="softwareupdate" title="Software update settings" menuTitle="Settings">
+	<setup key="softwareupdate" title="Software update settings">
 		<item level="1" text="Background check" description="Perform an online update check in the background">config.softwareupdate.check</item>
 		<item level="1" text="Check every (hours)" description="Setup the interval (in hours) to check for online updates." requires="config.softwareupdate.check">config.softwareupdate.checktimer</item>
 		<item level="1" text="Allow unstable (experimental) updates" description="When enabled the online checker will also check for experimental versions">config.softwareupdate.updatebeta</item>
 		<item level="1" text="Automatic settings backup" description="Perform a settings backup before updating.">config.softwareupdate.autosettingsbackup</item>
 		<item level="1" text="Automatic image backup" description="Perform a complete image backup before updating.">config.softwareupdate.autoimagebackup</item>
 	</setup>
-	<setup key="logs" title="Logs settings" menuTitle="Settings">
+	<setup key="logs" title="Logs settings">
 		<item level="2" text="Logs folder location" description="Choose the location for crash and debug logs folder.">config.crash.debug_path</item>
 		<item level="2" text="Enable debug logs *" description="Allows you to enable the debug logs. They contain very detailed information about everything the system does. Reboot required to enable this!">config.crash.enabledebug</item>
 		<item level="2" text="Limit debug log size (MB)" description="Allows you to set the maximum size (MB) of the individual debug logs. When that size is reached, the log file will be truncated to the maximum size every 60 minutes.">config.crash.debugloglimit</item>
@@ -460,7 +463,7 @@
 		<item level="2" text="Blue button (short)" description="Set to what you want the button to do.">config.epgselection.grid.btn_blue</item>
 		<item level="2" text="Blue button (long)" description="Set to what you want the button to do.">config.epgselection.grid.btn_bluelong</item>
 	</setup>
-	<setup key="pluginbrowsersetup" title="Plugin browser settings" menuTitle="Settings">
+	<setup key="pluginbrowsersetup" title="Plugin browser settings">
 		<item level="2" text="Show translation packages" description="If set to 'yes' it will show the 'PO' packages in browser.">config.pluginbrowser.po</item>
 		<item level="2" text="Show source packages" description="If set to 'yes' it will show the 'SRC' packages in browser.">config.pluginbrowser.src</item>
 	</setup>
@@ -478,6 +481,7 @@
 		<item level="0" text="Number of rows" description="Number of rows to display">config.movielist.itemsperpage</item>
 		<item level="0" text="Use slim screen" description="Use the alternative screen">config.movielist.useslim</item>
 		<item level="0" text="Use adaptive date display" description="Adaptive date display allows recent dates to be displayed as 'Today' or 'Yesterday'.  It hides the year for recordings made this year.  It hides the day of the week for recordings made in previous years.">config.movielist.use_fuzzy_dates</item>
+		<item level="0" text="Enable automatic collections" description="When enabled, recordings are grouped by name into collections automatically.">config.movielist.enable_collections</item>
 		<item level="0" text="Sort" description="Set the default sorting method.">self.cfg.moviesort</item>
 		<item level="0" text="Sort Trash by deletion time" description="Use the deletion time to sort Trash directories.\nMost recently deleted at the top.">config.usage.trashsort_deltime</item>
 		<item level="0" text="Show extended description" description="Show or hide the extended description, (skin dependant).">self.cfg.description</item>
@@ -574,6 +578,29 @@
 			<item text="Set end time">self.timerentry_showendtime</item>
 			<item text="End time" conditional="self.timerentry_showendtime.value">self.timerentry_endtime</item>
 			<item text="After event">self.timerentry_afterevent</item>
+		</if>
+	</setup>
+	<setup key="clientmode" title="Client Mode setup">
+		<item text="Enable client mode" description="Enable or disable using HDMI-CEC.">config.clientmode.enabled</item>
+		<if conditional="config.clientmode.enabled.value">
+			<item text="Host receiver address type" description="Select between entering an IP address or a domain.">config.clientmode.serverAddressType</item>
+			<if conditional="config.clientmode.serverAddressType.value == 'ip'">
+				<item text="Host receiver IP address" description="Enter the IP address of the host receiver.">config.clientmode.serverIP</item>
+			<else/>
+				<item text="Host domain" description="Enter the domain of the host receiver. Do not include 'http://' or port number.">config.clientmode.serverDomain</item>
+			</if>
+			<item text="Host receiver streaming port" description="Enter the streaming port of the host receiver (normally '8001').">config.clientmode.serverStreamingPort</item>
+			<item text="Host receiver FTP username" description="Enter the FTP username of the host receiver (normally 'root').">config.clientmode.serverFTPusername</item>
+			<item text="Host receiver FTP password" description="Enter the FTP password of the host receiver (required for any server running OpenBH 4.4 or greater).">config.clientmode.serverFTPpassword</item>
+			<item text="Host receiver FTP port" description="Enter the FTP port of the host receiver (normally '21').">config.clientmode.serverFTPPort</item>
+			<item text="FTP passive mode" description="Should the FTP connection to the remote receiver be established in passive mode (normally 'no')?">config.clientmode.passive</item>
+			<item text="Schedule EPG and channel list import" description="Allows you to set a schedule to import the EPG and channels list. The EPG and channels list will always be imported on reboot or GUI restart.">config.clientmode.enableSchedule</item>
+			<if conditional="config.clientmode.enableSchedule.value">
+				<item text="Repeat how often" description="Set the repeat interval of the schedule.">config.clientmode.scheduleRepeatInterval</item>
+				<if conditional="config.clientmode.scheduleRepeatInterval.value == 'daily'">
+					<item text="Time import should start" description="Set the time of day to perform the import.">config.clientmode.scheduletime</item>
+				</if>
+			</if>
 		</if>
 	</setup>
 </setupxml>

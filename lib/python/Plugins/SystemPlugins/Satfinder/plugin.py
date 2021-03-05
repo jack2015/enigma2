@@ -1,4 +1,4 @@
-from enigma import eDVBResourceManager, eDVBFrontendParametersSatellite, eDVBFrontendParametersTerrestrial
+from enigma import eDVBResourceManager, eDVBFrontendParametersSatellite, eDVBFrontendParametersTerrestrial, eTimer
 
 from Screens.ScanSetup import ScanSetup, buildTerTransponder
 from Screens.ServiceScan import ServiceScan
@@ -18,16 +18,18 @@ from Screens.Screen import Screen # for services found class
 
 try: # for reading the current transport stream (SatfinderExtra)
 	from Plugins.SystemPlugins.AutoBouquetsMaker.scanner import dvbreader
+	dvbreader_available = True
+except ImportError:
+	print "[Satfinder] import dvbreader not available"
+	dvbreader_available = False
+
+if dvbreader_available:
 	from Components.Sources.StaticText import StaticText
 	from Components.ScrollLabel import ScrollLabel
 	from Components.Label import Label
 	import time
 	import datetime
 	import thread
-	dvbreader_available = True
-except ImportError:
-	print "[Satfinder] import dvbreader not available"
-	dvbreader_available = False
 
 class Satfinder(ScanSetup, ServiceScan):
 	"""Inherits StaticText [key_red] and [key_green] properties from ScanSetup"""
@@ -55,16 +57,19 @@ class Satfinder(ScanSetup, ServiceScan):
 		self.frontend = None
 		self.is_id_boolEntry = None
 		self.t2mi_plp_id_boolEntry = None
+		self.timer = eTimer()
+		self.timer.callback.append(self.updateFrontendStatus)
 
 		ScanSetup.__init__(self, session)
+		self.entryChanged = self.newConfig
 		self.setTitle(_("Signal finder"))
 		self["Frontend"] = FrontendStatus(frontend_source = lambda : self.frontend, update_interval = 100)
 
-		self["actions"] = ActionMap(["SetupActions", "ColorActions"],
+		self["actions"] = ActionMap(["CancelSaveActions"],
 		{
 			"save": self.keyGoScan,
-			"ok": self.keyGoScan,
 			"cancel": self.keyCancel,
+			"close": self.doCloseRecursive,
 		}, -3)
 
 		self.initcomplete = True
@@ -95,6 +100,15 @@ class Satfinder(ScanSetup, ServiceScan):
 						self.frontend = None # in normal case this should not happen
 		self.tuner = Tuner(self.frontend)
 		self.retune()
+
+	def updateFrontendStatus(self):
+		if self.frontend:
+			dict = {}
+			self.frontend.getFrontendStatus(dict)
+			if dict["tuner_state"] == "FAILED" or dict["tuner_state"] == "LOSTLOCK":
+				self.retune()
+			else:
+				self.timer.start(500, True)
 
 	def __onClose(self):
 		self.session.nav.playService(self.session.postScanService)
@@ -497,6 +511,7 @@ class Satfinder(ScanSetup, ServiceScan):
 			self.retuneCab()
 		elif self.DVB_type.value == "ATSC":
 			self.retuneATSC()
+		self.timer.start(500, True)
 
 	def keyGoScan(self):
 		self.frontend = None

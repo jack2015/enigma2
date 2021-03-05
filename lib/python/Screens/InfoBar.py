@@ -8,10 +8,10 @@ from Screens.Screen import Screen
 from Screens.MessageBox import MessageBox
 from Components.Label import Label
 from Components.Pixmap import MultiPixmap
+from Components.SystemInfo import SystemInfo
 
 profile("LOAD:enigma")
 import enigma
-from boxbranding import getBrandOEM
 
 profile("LOAD:InfoBarGenerics")
 from Screens.InfoBarGenerics import InfoBarShowHide, \
@@ -51,8 +51,8 @@ class InfoBar(InfoBarBase, InfoBarShowHide,
 		self["actions"] = HelpableActionMap(self, "InfobarActions",
 			{
 				"showMovies": (self.showMovies, _("Play recorded movies...")),
-				"showRadio": (self.showRadio, _("Show the radio player...")),
-				"showTv": (self.TvRadioToggle, _("Show the tv player...")),
+				"showRadio": (self.keyRadio, _("Show the radio player...")),
+				"showTv": (self.keyTV, _("Show the tv player...")),
 				"openBouquetList": (self.openBouquetList, _("Open bouquet list")),
 			}, prio=2, description=_("Basic functions"))
 
@@ -89,6 +89,11 @@ class InfoBar(InfoBarBase, InfoBarShowHide,
 		if config.misc.initialchannelselection.value:
 			self.onShown.append(self.showMenu)
 		self.onShow.append(self.doButtonsCheck)
+		self.onClose.append(self.__onClose)
+
+	def __onClose(self):
+		# clear the instance value so the skin reloader works correctly
+		InfoBar.instance = None
 
 	def showMenu(self):
 		self.onShown.remove(self.showMenu)
@@ -100,19 +105,16 @@ class InfoBar(InfoBarBase, InfoBarShowHide,
 		if config.obhsettings.ColouredButtons.value:
 			self["key_yellow"].setText(_("Audio Panel"))
 
-			if config.usage.defaultEPGType.value == "Graphical EPG..." or config.usage.defaultEPGType.value == "None":
-				self["key_red"].setText(_(" "))
+			if config.usage.defaultEPGType.value == "Grid EPG":
+				self["key_red"].setText(_("Single EPG"))
 			else:
-				self["key_red"].setText(_("EPG"))
+				self["key_red"].setText(_("Grid EPG"))
 
 			if not config.obhsettings.Subservice.value:
 				self["key_green"].setText(_("Green Panel"))
 			else:
 				self["key_green"].setText(_("Subservices"))
 		self["key_blue"].setText(_("Blue Panel"))
-
-	def __onClose(self):
-		InfoBar.instance = None
 
 	def __eventInfoChanged(self):
 		if self.execing:
@@ -147,19 +149,24 @@ class InfoBar(InfoBarBase, InfoBarShowHide,
 			self.showTvChannelList(True)
 			self.servicelist.showFavourites()
 
-	def TvRadioToggle(self):
-		if getBrandOEM() == 'gigablue':
+	def keyTV(self):
+		if SystemInfo["toggleTvRadioButtonEvents"]:
 			self.toogleTvRadio()
 		else:
 			self.showTv()
 
-	def toogleTvRadio(self):
-		if self.radioTV == 1:
-			self.radioTV = 0
-			self.showTv()
+	def keyRadio(self):
+		if SystemInfo["toggleTvRadioButtonEvents"]:
+			self.toogleTvRadio()
 		else:
-			self.radioTV = 1
 			self.showRadio()
+
+	def toogleTvRadio(self):
+		if self.radioTV:
+			self.showTv() 
+		else:
+			self.showRadio()
+		self.radioTV ^= 1
 
 	def showTv(self):
 		if config.usage.tvradiobutton_mode.value == "MovieList":
@@ -230,8 +237,24 @@ class MoviePlayer(InfoBarBase, InfoBarShowHide, InfoBarLongKeyDetection, InfoBar
 
 	instance = None
 
+	# Call this to ensure the movie player is closed and, if a movie is playing, 
+	# the resume point saved. If a returnService is specified, then the movieplayer
+	# will switch to that service when it closes
+	@staticmethod
+	def ensureClosed(nextService = None):
+		player = MoviePlayer.instance
+		if player is not None:
+			# Only try to set a resumepoint if currently playing something
+			ref = player.session.nav.getCurrentlyPlayingServiceOrGroup()
+			if ref is not None and ref.isPlayback():
+				setResumePoint(player.session)
+			if nextService:
+				player.lastservice = nextService
+			player.close()
+
 	def __init__(self, session, service, slist = None, lastservice = None):
 		Screen.__init__(self, session)
+
 		self["key_yellow"] = Label()
 		self["key_blue"] = Label()
 		self["key_green"] = Label()
@@ -278,11 +301,12 @@ class MoviePlayer(InfoBarBase, InfoBarShowHide, InfoBarLongKeyDetection, InfoBar
 		self["key_blue"].setText(_("Blue Panel"))
 
 	def __onClose(self):
-		config.misc.standbyCounter.removeNotifier(self.standbyCountChanged)
+		# clear the instance value so the skin reloader works correctly
 		MoviePlayer.instance = None
+		config.misc.standbyCounter.removeNotifier(self.standbyCountChanged)
 		from Screens.MovieSelection import playlist
 		del playlist[:]
-		if not config.movielist.stop_service.value:
+		if not config.movielist.stop_service.value and Screens.InfoBar.InfoBar.instance:
 			Screens.InfoBar.InfoBar.instance.callServiceStarted()
 		self.session.nav.playService(self.lastservice)
 		config.usage.last_movie_played.value = self.cur_service.toString()
@@ -570,4 +594,4 @@ class MoviePlayer(InfoBarBase, InfoBarShowHide, InfoBarLongKeyDetection, InfoBar
 		Notifications.AddPopup(text = _("%s/%s: %s") % (index, n, self.ref2HumanName(ref)), type = MessageBox.TYPE_INFO, timeout = 5)
 
 	def ref2HumanName(self, ref):
-		return enigma.eServiceCenter.getInstance().info(ref).getName(ref)
+		return enigma.eServiceCenter.getInstance().info(ref).getName(ref)		

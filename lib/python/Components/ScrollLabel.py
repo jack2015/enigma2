@@ -19,16 +19,21 @@ class ScrollLabel(GUIComponent):
 		self.splitchar = "|"
 
 	def applySkin(self, desktop, parent):
-		scrollbarWidth = 10
-		scrollbarBorderWidth = 1
+		scrollbarWidth = skin.applySlider(self.scrollbar, 10, 1)
 		ret = False
 		if self.skinAttributes:
 			widget_attribs = []
 			scrollbar_attribs = []
-			scrollbarAttrib = ["borderColor", "borderWidth", "scrollbarSliderForegroundColor", "scrollbarSliderBorderColor", "scrollbarSliderPicture", "scrollbarBackgroundPicture"]
-			for (attrib, value) in self.skinAttributes:
+			scrollbarAttrib = ["borderColor", "borderWidth", "scrollbarSliderForegroundColor", "scrollbarSliderBorderColor"]
+			for (attrib, value) in self.skinAttributes[:]:
 				if attrib in scrollbarAttrib:
 					scrollbar_attribs.append((attrib, value))
+					self.skinAttributes.remove((attrib, value))
+				elif attrib in ("scrollbarSliderPicture", "sliderPixmap"):
+					self.scrollbar.setPixmap(skin.loadPixmap(value, desktop))
+					self.skinAttributes.remove((attrib, value))
+				elif attrib in ("scrollbarBackgroundPicture", "scrollbarbackgroundPixmap"):
+					self.scrollbar.setBackgroundPixmap(skin.loadPixmap(value, desktop))
 					self.skinAttributes.remove((attrib, value))
 				elif "transparent" in attrib or "backgroundColor" in attrib:
 					widget_attribs.append((attrib, value))
@@ -36,10 +41,10 @@ class ScrollLabel(GUIComponent):
 					scrollbarWidth = int(value)
 					self.skinAttributes.remove((attrib, value))
 				elif "scrollbarSliderBorderWidth" in attrib:
-					scrollbarBorderWidth = int(value)
+					self.scrollbar.setBorderWidth(int(value))
 					self.skinAttributes.remove((attrib, value))
 				elif "split" in attrib:
-					self.split = int(value)
+					self.split = 1 if value.lower() in ("1", "enabled", "on", "split", "true", "yes") else 0
 					if self.split:
 						self.right_text = eLabel(self.instance)
 					self.skinAttributes.remove((attrib, value))	
@@ -65,7 +70,6 @@ class ScrollLabel(GUIComponent):
 		self.scrollbar.resize(eSize(scrollbarWidth, self.pageHeight + int(lineheight / 6)))
 		self.scrollbar.setOrientation(eSlider.orVertical)
 		self.scrollbar.setRange(0, 100)
-		self.scrollbar.setBorderWidth(scrollbarBorderWidth)
 		self.setText(self.message)
 		return ret
 

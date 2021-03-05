@@ -194,6 +194,9 @@ class PositionerSetup(Screen):
 		self.blue = Button("")
 		self["key_blue"] = self.blue
 
+		self["key_menu"] = StaticText(_("MENU"))
+		self["key_info"] = StaticText(_("INFO"))
+
 		self.list = []
 		self["list"] = ConfigList(self.list)
 
@@ -238,7 +241,7 @@ class PositionerSetup(Screen):
 			"green": self.greenKey,
 			"yellow": self.yellowKey,
 			"blue": self.blueKey,
-			"log": self.showLog,
+			"log": self.showLog, # KEY_INFO
 			"mainMenu": self.furtherOptions,
 			"1": self.keyNumberGlobal,
 			"2": self.keyNumberGlobal,
@@ -1281,6 +1284,7 @@ class TunerScreen(ConfigListScreen, Screen):
 		self.fe_data = fe_data
 		Screen.__init__(self, session)
 		self.setTitle(_("Tune"))
+		self.skinName = ["TunerScreen", "Setup"]
 		ConfigListScreen.__init__(self, None)
 		self.createConfig(fe_data)
 		self.initialSetup()
@@ -1298,8 +1302,8 @@ class TunerScreen(ConfigListScreen, Screen):
 		}, -2)
 
 		self["key_red"] = StaticText(_("Cancel"))
-		self["key_green"] = StaticText(_("OK"))
-		self["introduction"] = Label(_("Press OK, save and exit..."))
+		self["key_green"] = StaticText(_("Save"))
+		self["introduction"] = Label(_("Press OK to save and exit."))
 
 	def createConfig(self, frontendData):
 		satlist = nimmanager.getRotorSatListForNim(self.feid)
@@ -1527,49 +1531,45 @@ class RotorNimSelection(Screen):
 			<widget name="nimlist" position="20,10" size="360,100" />
 		</screen>"""
 
-	def __init__(self, session):
+	def __init__(self, session, nimList):
 		Screen.__init__(self, session)
 		self.setTitle(_("Select slot"))
-		nimlist = nimmanager.getNimListOfType("DVB-S")
 		nimMenuList = []
-		for x in nimlist:
-			if len(nimmanager.getRotorSatListForNim(x)) != 0:
-				nimMenuList.append((nimmanager.nim_slots[x].friendly_full_description, x))
+		for nim in nimList:
+			nimMenuList.append((nimmanager.nim_slots[nim].friendly_full_description, nim))
 
 		self["nimlist"] = MenuList(nimMenuList)
 
 		self["actions"] = ActionMap(["OkCancelActions"],
 		{
-			"ok": self.okbuttonClick ,
+			"ok": self.okbuttonClick,
 			"cancel": self.close
 		}, -1)
 
 	def okbuttonClick(self):
-		selection = self["nimlist"].getCurrent()
-		self.session.open(PositionerSetup, selection[1])
+		self.session.openWithCallback(self.close, PositionerSetup, self["nimlist"].getCurrent()[1])
+
+def getUsableRotorNims(only_first=False):
+	usableRotorNims = []
+	nimList = nimmanager.getNimListOfType("DVB-S")
+	for nim in nimList:
+		if nimmanager.getRotorSatListForNim(nim):
+			usableRotorNims.append(nim)
+			if only_first:
+				break
+	return usableRotorNims
 
 def PositionerMain(session, **kwargs):
-	nimList = nimmanager.getNimListOfType("DVB-S")
-	if len(nimList) == 0:
-		session.open(MessageBox, _("No positioner capable frontend found."), MessageBox.TYPE_ERROR)
-	else:
-		usableNims = []
-		for x in nimList:
-			configured_rotor_sats = nimmanager.getRotorSatListForNim(x)
-			if len(configured_rotor_sats) != 0:
-				usableNims.append(x)
-		if len(usableNims) == 1:
-			session.open(PositionerSetup, usableNims[0])
-		elif len(usableNims) > 1:
-			session.open(RotorNimSelection)
-		else:
-			session.open(MessageBox, _("No tuner is configured for use with a diseqc positioner!"), MessageBox.TYPE_ERROR)
+	usableRotorNims = getUsableRotorNims()
+	if len(usableRotorNims) == 1:
+		session.open(PositionerSetup, usableRotorNims[0])
+	elif len(usableRotorNims) > 1:
+		session.open(RotorNimSelection, usableRotorNims)
 
 def PositionerSetupStart(menuid, **kwargs):
-	if menuid == "scan" and nimmanager.somethingConnected():
+	if menuid == "scan" and getUsableRotorNims(True):
 		return [(_("Positioner setup"), PositionerMain, "positioner_setup", None)]
-	else:
-		return []
+	return []
 
 def Plugins(**kwargs):
 	if nimmanager.hasNimType("DVB-S"):

@@ -1,15 +1,14 @@
 from time import localtime, time, strftime
 
-from enigma import eEPGCache, eListbox, eListboxPythonMultiContent, loadPNG, gFont, getDesktop, eRect, eSize, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_WRAP, BT_SCALE, BT_KEEP_ASPECT_RATIO, BT_ALIGN_CENTER
+from enigma import eListbox, eListboxPythonMultiContent, eServiceReference, loadPNG, gFont, eRect, eSize, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_WRAP, BT_SCALE, BT_KEEP_ASPECT_RATIO, BT_ALIGN_CENTER
 
-from skin import parseColor, parseFont
+from skin import parseColor, parseFont, parseScale
 from Components.EpgListBase import EPGListBase
 from Components.GUIComponent import GUIComponent
 from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend, MultiContentEntryPixmapAlphaTest
 from Components.Renderer.Picon import getPiconName
 from Components.config import config
 from RecordTimer import RecordTimer
-from ServiceReference import ServiceReference
 from Tools.Alternatives import CompareWithAlternatives
 from Tools.Directories import resolveFilename, SCOPE_CURRENT_SKIN
 from Tools.TextBoundary import getTextBoundarySize
@@ -219,10 +218,10 @@ class EPGListGrid(EPGListBase):
 		events = self.selectedService[2]
 		refstr = self.selectedService[0]
 		if self.selectedEventIndex is None or not events or (self.selectedEventIndex and events and self.selectedEventIndex > len(events) - 1):
-			return None, ServiceReference(refstr)
+			return None, eServiceReference(refstr)
 		event = events[self.selectedEventIndex]  # (eventId, eventTitle, beginTime, duration)
 		eventId = event[0]
-		service = ServiceReference(refstr)
+		service = eServiceReference(refstr)
 		event = self.getEventFromId(service, eventId)  # Get full event info.
 		return event, service
 
@@ -248,32 +247,27 @@ class EPGListGrid(EPGListBase):
 	GUI_WIDGET = eListbox
 
 	def setItemsPerPage(self):
-		if self.numberOfRows:
-			self.epgConfig.itemsperpage.default = self.numberOfRows
-		itemHeight = self.listHeight / self.epgConfig.itemsperpage.value if self.listHeight > 0 else 54  # Some default (270 / 5).
-
+		EPGListBase.setItemsPerPage(self, 54)
 		if not self.isInfobar and config.epgselection.grid.heightswitch.value:
-			if ((self.listHeight / config.epgselection.grid.itemsperpage.value) / 3) >= 27:
-				tmpItemHeight = ((self.listHeight / config.epgselection.grid.itemsperpage.value) / 3)
-			elif ((self.listHeight / config.epgselection.grid.itemsperpage.value) / 2) >= 27:
-				tmpItemHeight = ((self.listHeight / config.epgselection.grid.itemsperpage.value) / 2)
+			numberOfRows = (self.listHeight // self.itemHeight) or 8
+			if ((self.listHeight / numberOfRows) / 3) >= 27:
+				tmpItemHeight = ((self.listHeight / numberOfRows) / 3)
+			elif ((self.listHeight / numberOfRows) / 2) >= 27:
+				tmpItemHeight = ((self.listHeight / numberOfRows) / 2)
 			else:
 				tmpItemHeight = 27
-			if tmpItemHeight < itemHeight:
-				itemHeight = tmpItemHeight
+			if tmpItemHeight < self.itemHeight:
+				self.itemHeight = tmpItemHeight
 			else:
-				if ((self.listHeight / config.epgselection.grid.itemsperpage.value) * 3) <= 45:
-					itemHeight = ((self.listHeight / config.epgselection.grid.itemsperpage.value) * 3)
-				elif ((self.listHeight / config.epgselection.grid.itemsperpage.value) * 2) <= 45:
-					itemHeight = ((self.listHeight / config.epgselection.grid.itemsperpage.value) * 2)
+				if ((self.listHeight / numberOfRows) * 3) <= 45:
+					self.itemHeight = ((self.listHeight / numberOfRows) * 3)
+				elif ((self.listHeight / numberOfRows) * 2) <= 45:
+					self.itemHeight = ((self.listHeight / numberOfRows) * 2)
 				else:
-					itemHeight = 45
-
-		self.l.setItemHeight(itemHeight)
-		self.instance.resize(eSize(self.listWidth, self.listHeight / itemHeight * itemHeight))
-		self.listHeight = self.instance.size().height()
-		self.listWidth = self.instance.size().width()
-		self.itemHeight = itemHeight
+					self.itemHeight = 45
+			self.l.setItemHeight(self.itemHeight)
+			self.instance.resize(eSize(self.listWidth, self.listHeight / self.itemHeight * self.itemHeight))
+			self.listHeight = self.instance.size().height()
 
 	def setFontsize(self):
 		self.l.setFont(0, gFont(self.serviceFontName, self.serviceFontSize + self.epgConfig.servfs.value))
@@ -670,11 +664,7 @@ class EPGListGrid(EPGListBase):
 		return res
 
 	def getSelectionPosition(self):
-		# Adjust absolute index to index in displayed view.
-		index = self.l.getCurrentSelectionIndex() % self.epgConfig.itemsperpage.value
-		sely = self.instance.position().y() + self.itemHeight * index
-		if sely >= self.instance.position().y() + self.listHeight:
-			sely -= self.listHeight
+		_, sely = EPGListBase.getSelectionPosition(self)
 		return self.selectionRect.left() + self.selectionRect.width(), sely
 
 	def refreshSelection(self):
@@ -890,7 +880,7 @@ class TimelineText(GUIComponent):
 					self.timelineFontName = font.family
 					self.timelineFontSize = font.pointSize
 				elif attrib == "itemHeight":
-					self.itemHeight = int(value)
+					self.itemHeight = parseScale(value)
 				else:
 					attribs.append((attrib, value))
 			self.skinAttributes = attribs

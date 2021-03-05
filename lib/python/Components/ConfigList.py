@@ -1,8 +1,8 @@
 from enigma import eListbox, eListboxPythonConfigContent, ePoint, eRCInput, eTimer
-from skin import parameters
+from skin import parameters, applySkinFactor
 
 from Components.ActionMap import HelpableActionMap, HelpableNumberActionMap
-from Components.config import ConfigBoolean, ConfigElement, ConfigInteger, ConfigMacText, ConfigSelection, ConfigSequence, ConfigText, KEYA_0, KEYA_ASCII, KEYA_BACKSPACE, KEYA_DELETE, KEYA_ERASE, KEYA_FIRST, KEYA_LAST, KEYA_LEFT, KEYA_NUMBERS, KEYA_RIGHT, KEYA_SELECT, KEYA_TIMEOUT, KEYA_TOGGLE, config, configfile
+from Components.config import ConfigBoolean, ConfigElement, ConfigInteger, ConfigMacText, ConfigNothing, ConfigSelection, ConfigSequence, ConfigText, KEYA_0, KEYA_ASCII, KEYA_BACKSPACE, KEYA_DELETE, KEYA_ERASE, KEYA_FIRST, KEYA_LAST, KEYA_LEFT, KEYA_NUMBERS, KEYA_RIGHT, KEYA_SELECT, KEYA_TIMEOUT, KEYA_TOGGLE, config, configfile
 from Components.GUIComponent import GUIComponent
 from Components.Pixmap import Pixmap
 from Components.Sources.Boolean import Boolean
@@ -17,9 +17,9 @@ class ConfigList(GUIComponent, object):
 	def __init__(self, list, session=None):
 		GUIComponent.__init__(self)
 		self.l = eListboxPythonConfigContent()
-		seperation = parameters.get("ConfigListSeperator", 200)
+		seperation = parameters.get("ConfigListSeperator", applySkinFactor(200))
 		self.l.setSeperation(seperation)
-		height, space = parameters.get("ConfigListSlider", (17, 0))
+		height, space = parameters.get("ConfigListSlider", (applySkinFactor(17), applySkinFactor(0)))
 		self.l.setSlider(height, space)
 		self.timer = eTimer()
 		self.list = list
@@ -181,7 +181,7 @@ class ConfigListScreen:
 		self["menuConfigActions"] = HelpableActionMap(self, "ConfigListActions", {
 			"menu": (self.keyMenu, _("Display selection list as a selection menu")),
 		}, prio=1, description=_("Common Setup Actions"))
-		self["menuConfigActions"].setEnabled(False)
+		self["menuConfigActions"].setEnabled(False if fullUI else True)
 		self["editConfigActions"] = HelpableNumberActionMap(self, ["NumberActions", "TextEditActions"], {
 			"backspace": (self.keyBackspace, _("Delete character to left of cursor or select AM times")),
 			"delete": (self.keyDelete, _("Delete character under cursor or select PM times")),
@@ -199,7 +199,7 @@ class ConfigListScreen:
 			"0": (self.keyNumberGlobal, _("Number or SMS style data entry")),
 			"gotAsciiCode": (self.keyGotAscii, _("Keyboard data entry"))
 		}, prio=1, description=_("Common Setup Actions"))
-		self["editConfigActions"].setEnabled(False)
+		self["editConfigActions"].setEnabled(False if fullUI else True)
 		self["VirtualKB"] = HelpableActionMap(self, "VirtualKeyboardActions", {
 			"showVirtualKeyboard": (self.keyText, _("Display the virtual keyboard for data entry"))
 		}, prio=1, description=_("Common Setup Actions"))
@@ -249,7 +249,7 @@ class ConfigListScreen:
 				self["editConfigActions"].setEnabled(True)
 			else:
 				self["editConfigActions"].setEnabled(False)
-			if isinstance(currConfig[1], ConfigSelection):
+			if isinstance(currConfig[1], ConfigSelection) and not isinstance(currConfig[1], ConfigNothing):
 				self["menuConfigActions"].setEnabled(True)
 				self["key_menu"].setText(_("MENU"))
 			else:
@@ -284,7 +284,9 @@ class ConfigListScreen:
 					currConf.help_window.hide()
 
 	def keySelect(self):
-		if isinstance(self.getCurrentItem(), ConfigSelection):
+		if isinstance(self.getCurrentItem(), ConfigBoolean):
+			self.keyToggle()
+		elif isinstance(self.getCurrentItem(), ConfigSelection):
 			self.keyMenu()
 		elif isinstance(self.getCurrentItem(), ConfigText):
 			self.keyText()
@@ -331,7 +333,7 @@ class ConfigListScreen:
 		self["config"].moveUp()
 
 	def keyFirst(self):
-		self["config"].handleKey(KEYA_HOME)
+		self["config"].handleKey(KEYA_FIRST)
 		self.entryChanged()
 
 	def keyLeft(self):
@@ -343,7 +345,7 @@ class ConfigListScreen:
 		self.entryChanged()
 
 	def keyLast(self):
-		self["config"].handleKey(KEYA_END)
+		self["config"].handleKey(KEYA_LAST)
 		self.entryChanged()
 
 	def keyDown(self):

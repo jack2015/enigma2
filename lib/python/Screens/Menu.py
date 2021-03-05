@@ -16,7 +16,7 @@ from enigma import eTimer
 
 import xml.etree.cElementTree
 
-from Screens.Setup import Setup, getSetupTitle
+from Screens.Setup import Setup
 
 mainmenu = _("Main menu")
 
@@ -66,7 +66,9 @@ class MenuSummary(ScreenSummary):
 			self.parent["menu"].onSelectionChanged.remove(self.selectionChanged)
 
 	def selectionChanged(self):
-		self["entry"].text = self.parent["menu"].getCurrent()[0]  # DEBUG: Proposed for new summary screens.
+		selection = self.parent["menu"].getCurrent()
+		if selection:
+			self["entry"].text = selection[0]  # DEBUG: Proposed for new summary screens.
 
 
 class Menu(Screen, HelpableScreen, ProtectedScreen):
@@ -141,7 +143,9 @@ class Menu(Screen, HelpableScreen, ProtectedScreen):
 		conditional = node.get("conditional")
 		if conditional and not eval(conditional):
 			return
-		item_text = node.get("text", "").encode("UTF-8")
+		item_text = node.get("text", "* Undefined *").encode("UTF-8")
+		if item_text:
+			item_text = _(item_text)
 		entryID = node.get("entryID", "undefined")
 		weight = node.get("weight", 50)
 		for x in node:
@@ -163,7 +167,7 @@ class Menu(Screen, HelpableScreen, ProtectedScreen):
 				args = x.text or ""
 				screen += ", " + args
 
-				destList.append((_(item_text or "??"), boundFunction(self.runScreen, (module, screen)), entryID, weight))
+				destList.append((item_text, boundFunction(self.runScreen, (module, screen)), entryID, weight))
 				return
 			elif x.tag == 'plugin':
 				extensions = x.get("extensions")
@@ -190,17 +194,13 @@ class Menu(Screen, HelpableScreen, ProtectedScreen):
 				args = x.text or ""
 				screen += ", " + args
 
-				destList.append((_(item_text or "??"), boundFunction(self.runScreen, (module, screen)), entryID, weight))
+				destList.append((item_text, boundFunction(self.runScreen, (module, screen)), entryID, weight))
 				return
 			elif x.tag == 'code':
-				destList.append((_(item_text or "??"), boundFunction(self.execText, x.text), entryID, weight))
+				destList.append((item_text, boundFunction(self.execText, x.text), entryID, weight))
 				return
 			elif x.tag == 'setup':
 				id = x.get("id")
-				if item_text == "":
-					item_text = _(getSetupTitle(id))
-				else:
-					item_text = _(item_text)
 				destList.append((item_text, boundFunction(self.openSetup, id), entryID, weight))
 				return
 		destList.append((item_text, self.nothing, entryID, weight))

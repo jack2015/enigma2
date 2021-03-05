@@ -7,6 +7,7 @@ from Components.config import config, ConfigSelection, ConfigSubsection
 from Components.EpgListMulti import EPGListMulti
 from Components.Label import Label
 from Components.Pixmap import Pixmap
+from Components.Sources.StaticText import StaticText
 from Screens.EpgSelectionBase import EPGBouquetSelection, EPGSelectionBase, EPGServiceNumberSelection, EPGServiceZap, epgActions, infoActions, okActions
 from Screens.Setup import Setup
 from Screens.UserDefinedButtons import UserDefinedButtons
@@ -33,6 +34,7 @@ class EPGSelectionMulti(EPGSelectionBase, EPGBouquetSelection, EPGServiceNumberS
 		self["next_text"] = Label()
 		self["more_text"] = Label()
 		self["date"] = Label()
+		self["key_text"] = StaticText(_("TEXT"))
 
 		helpDescription = _("EPG Commands")
 		self["epgcursoractions"] = HelpableActionMap(self, "DirectionActions", {
@@ -58,7 +60,7 @@ class EPGSelectionMulti(EPGSelectionBase, EPGBouquetSelection, EPGServiceNumberS
 			"menu": (self.createSetup, _("Setup menu"))
 		}, prio=-1, description=helpDescription)
 
-		self["list"] = EPGListMulti(session, selChangedCB=self.onSelectionChanged)
+		self["list"] = EPGListMulti(session, config.epgselection.multi, selChangedCB=self.onSelectionChanged)
 
 	def createSetup(self):
 		def onClose(test=None):

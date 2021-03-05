@@ -1,14 +1,8 @@
-from time import localtime, time, strftime
+from enigma import eEPGCache, eListbox, eListboxPythonMultiContent, eServiceReference, eSize, loadPNG, getDesktop
 
-from enigma import eEPGCache, eListbox, eListboxPythonMultiContent, loadPNG, gFont, getDesktop, eRect, eSize, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_WRAP, BT_SCALE, BT_KEEP_ASPECT_RATIO, BT_ALIGN_CENTER
-
-from ServiceReference import ServiceReference
 from Components.GUIComponent import GUIComponent
-from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend, MultiContentEntryPixmapAlphaTest
-from Components.Renderer.Picon import getPiconName
 from Tools.Alternatives import CompareWithAlternatives
 from Tools.Directories import SCOPE_CURRENT_SKIN, resolveFilename
-from Tools.TextBoundary import getTextBoundarySize
 
 
 class EPGListBase(GUIComponent):
@@ -45,29 +39,50 @@ class EPGListBase(GUIComponent):
 		self.isFullHd = getDesktop(0).size().width() == 1920
 		self.listHeight = None
 		self.listWidth = None
+		self.skinItemHeight = None
 		self.numberOfRows = None
 
 	def applySkin(self, desktop, screen):
 		if self.skinAttributes is not None:
 			attribs = []
 			for (attrib, value) in self.skinAttributes:
-				if attrib == "NumberOfRows":
+				if attrib == "itemHeight":
+					self.skinItemHeight = int(value)
+				if attrib == "NumberOfRows": # for compatibility with ATV skins
 					self.numberOfRows = int(value)
 				else:
 					attribs.append((attrib, value))
 			self.skinAttributes = attribs
 		rc = GUIComponent.applySkin(self, desktop, screen)
-		self.listHeight = self.instance.size().height()
+		self.skinListHeight = self.listHeight = self.instance.size().height()
 		self.listWidth = self.instance.size().width()
 		self.setFontsize()
 		self.setItemsPerPage()
 		return rc
+
+	def setItemsPerPage(self, defaultItemHeight=54):
+		numberOfRows = self.epgConfig.itemsperpage.value or self.numberOfRows
+		itemHeight = (self.skinListHeight // numberOfRows if numberOfRows > 0 else self.skinItemHeight) or defaultItemHeight
+		self.l.setItemHeight(itemHeight)
+		self.instance.resize(eSize(self.listWidth, self.skinListHeight / itemHeight * itemHeight))
+		self.listHeight = self.instance.size().height()
+		self.listWidth = self.instance.size().width()
+		self.itemHeight = itemHeight
 
 	def getEventFromId(self, service, eventId):
 		event = None
 		if self.epgcache is not None and eventId is not None:
 			event = self.epgcache.lookupEventId(service.ref, eventId)
 		return event
+
+	def getSelectionPosition(self):
+		# Adjust absolute index to index in displayed view
+		rowCount = self.listHeight // self.itemHeight
+		index = self.l.getCurrentSelectionIndex() % rowCount
+		sely = self.instance.position().y() + self.itemHeight * index
+		if sely >= self.instance.position().y() + self.listHeight:
+			sely -= self.listHeight
+		return self.listWidth, sely
 
 	def getIndexFromService(self, serviceref):
 		if serviceref is not None:
@@ -101,7 +116,7 @@ class EPGListBase(GUIComponent):
 		tmp = self.l.getCurrentSelection()
 		if tmp is None:
 			return None, None
-		service = ServiceReference(tmp[0])
+		service = eServiceReference(tmp[0])
 		eventId = tmp[1]
 		event = self.getEventFromId(service, eventId)
 		return event, service

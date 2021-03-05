@@ -47,6 +47,9 @@ class TimerEditList(Screen, ProtectedScreen):
 		self["key_yellow"] = StaticText("")
 		self["key_blue"] = StaticText("")
 
+		self["key_menu"] = StaticText(_("MENU"))
+		self["key_info"] = StaticText(_("INFO"))
+
 		self["description"] = Label()
 
 		self["actions"] = ActionMap(["OkCancelActions", "DirectionActions", "ShortcutActions", "TimerEditActions"],
@@ -54,7 +57,7 @@ class TimerEditList(Screen, ProtectedScreen):
 				"ok": self.openEdit,
 				"cancel": self.leave,
 				"green": self.addCurrentTimer,
-				"log": self.showLog,
+				"log": self.showLog, # KEY_INFO
 				"left": self.left,
 				"right": self.right,
 				"up": self.up,
@@ -347,7 +350,7 @@ class TimerEditList(Screen, ProtectedScreen):
 		if event is None:
 			data = (int(time()), int(time() + 60), "", "", None)
 		else:
-			data = parseEvent(event, description = False)
+			data = parseEvent(event, description = True)
 
 		self.addTimer(RecordTimerEntry(serviceref, checkOldTimers = True, dirname = preferredTimerPath(), *data))
 

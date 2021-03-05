@@ -7,6 +7,7 @@ from os.path import isdir, join as pathjoin
 
 from Components.config import ConfigYesNo, config
 from Components.Sources.StaticText import StaticText
+from Screens.MessageBox import MessageBox
 from Screens.ParentalControlSetup import ProtectedScreen
 from Screens.Setup import Setup
 from Tools.Directories import SCOPE_CONFIG, SCOPE_SKIN, resolveFilename
@@ -25,7 +26,7 @@ class FactoryReset(Setup, ProtectedScreen):
 		self.resetTimers = ConfigYesNo(default=True)
 		self.resetOthers = ConfigYesNo(default=True)
 		self.setup = {}  # Old Setup config entry data.
-		Setup.__init__(self, session=session, setup="FactoryReset")
+		Setup.__init__(self, session=session, setup="factoryreset")
 		self["key_green"].text = _("Reset")
 		ProtectedScreen.__init__(self)
 		self.setTitle(_("Factory Reset"))
@@ -34,9 +35,6 @@ class FactoryReset(Setup, ProtectedScreen):
 		return config.ParentalControl.setuppinactive.value and (
 			not config.ParentalControl.config_sections.main_menu.value and not config.ParentalControl.config_sections.configuration.value or hasattr(self.session, "infobar") and self.session.infobar is None
 		) and config.ParentalControl.config_sections.manufacturer_reset.value
-
-	def createSetupList(self):  # Old Setup config list builder method.
-		self.createSetup()
 
 	def createSetup(self):
 		self.analyseEnigma2()
@@ -109,6 +107,12 @@ class FactoryReset(Setup, ProtectedScreen):
 				self.others.append(file)
 
 	def keySave(self):
+		restartBox = self.session.openWithCallback(self.keySaveCallback, MessageBox, _("This will permanently delete the current configuration. It would be a good idea to make a backup before taking this drastic action. Are you certain you want to continue with a factory reset?"), default=False)
+		restartBox.setTitle(_("Factory Reset: Clearing data"))
+
+	def keySaveCallback(self, answer):
+		if not answer:
+			return
 		configDir = resolveFilename(SCOPE_CONFIG)
 		if self.resetFull.value:
 			print("[FactoryReset] Performing a full factory reset.")
