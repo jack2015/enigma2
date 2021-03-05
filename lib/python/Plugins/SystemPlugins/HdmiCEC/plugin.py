@@ -2,8 +2,10 @@ from Screens.Setup import Setup
 from Components.ActionMap import HelpableActionMap
 from Components.config import config
 from Components.Sources.StaticText import StaticText
+from os import path
 
-import Components.HdmiCec
+if path.exists('/dev/hdmi_cec') or path.exists('/dev/misc/hdmi_cec0'):
+	import Components.HdmiCec
 
 class HdmiCECSetupScreen(Setup):
 	def __init__(self, session):
