@@ -2,9 +2,9 @@ name: Enigma2 CI
 
 on:
   push:
-    branches: [ Dev ]
+    branches: [ master ]
   pull_request:
-    branches: [ Dev ]
+    branches: [ master ]
 
 jobs:
   build:
