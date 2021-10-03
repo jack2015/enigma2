@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        gcc: [8, 10]
+        gcc: [10]
     steps:
     - uses: actions/checkout@v2
     - name: install gcc ${{ matrix.gcc }}
