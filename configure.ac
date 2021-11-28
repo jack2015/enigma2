@@ -77,6 +77,35 @@ AM_CONDITIONAL(VUUNO4KSE, test "$BOXTYPE" == vuuno4kse)
 AM_CONDITIONAL(VUZERO, test "$BOXTYPE" == vuzero)
 AM_CONDITIONAL(VUZERO4K, test "$BOXTYPE" == vuzero4k)
 
+AM_CONDITIONAL(DREAMBOX, test `echo "$BOXTYPE" | cut -b 1-2` == "dm")
+AM_CONDITIONAL(DM900, test "$BOXTYPE" == dm900)
+
+AC_ARG_WITH(colorlcd390,
+	AC_HELP_STRING([--with-colorlcd390], [use 390x240 16bpp color display, yes or no]),
+	[[withcolorlcd390=$withval]],
+	[[withcolorlcd390=no]]
+)
+if test x"$withcolorlcd390" != xno ; then
+	AC_DEFINE(HAVE_COLORLCD390, 1,[Define when using a 390x240 color display device])
+fi
+AM_CONDITIONAL(HAVE_COLORLCD390, test x"$withcolorlcd390" != xno)
+
+if test `echo "$BOXTYPE" | cut -b 1-3` == "dm9"; then
+	AC_DEFINE(DREAMBOX_MOVE_LCD, 1,[define when we need to move lcd text a bit to the right])
+fi
+
+if test `echo "$BOXTYPE" | cut -b 1-2` == "dm"; then
+	AC_DEFINE(DREAMBOX, 1, [Dreambox hardware])
+	AC_DEFINE(KEY_PLAY_ACTUALLY_IS_KEY_PLAYPAUSE, 1,[define when rc sends a KEY_PLAY event for its KEY_PLAYPAUSE key])
+fi
+
+if test "$BOXTYPE" == "dm7080" -o "$BOXTYPE" == "dm820" -o "$BOXTYPE" == "dm800se" -o "$BOXTYPE" == "dm800sev2" -o "$BOXTYPE" == "dm7020hd" -o "$BOXTYPE" == "dm7020hdv2" -o "$BOXTYPE" == "dm900" -o "$BOXTYPE" == "dm920"; then
+	AC_DEFINE(DREAMBOX_DUAL_TUNER, 1,[define BOXTYPE DM7080])
+fi
+
+if test "$BOXTYPE" == "dm7080" -o "$BOXTYPE" == "dm820"  -o "$BOXTYPE" == "dm900" -o "$BOXTYPE" == "dm920" -o "$BOXTYPE" == "dm520"; then
+	AC_DEFINE(CONFIG_ION, 1,[define BOX use ION Allocator])
+
 AC_ARG_WITH(accelerationthreshold,
 	AC_HELP_STRING([--with-accelerationthreshold=n], [use acceleration threshold of n bytes]),
 	[[with_accelerationthreshold=$withval]],
@@ -394,6 +423,7 @@ data/7segment/Makefile
 data/display96/Makefile
 data/display128/Makefile
 data/display220/Makefile
+data/display390/Makefile
 data/display400/Makefile
 data/display480/Makefile
 data/display480/OBH-LCDskin/Makefile

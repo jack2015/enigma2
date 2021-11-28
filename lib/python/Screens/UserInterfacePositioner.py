@@ -11,11 +11,14 @@ from Tools.Directories import fileCheck, fileExists
 from enigma import getDesktop
 from os import access, R_OK
 
-from boxbranding import getBoxType
+from boxbranding import getBoxType, getBrandOEM
 
 
 def getFilePath(setting):
-	return "/proc/stb/fb/dst_%s" % (setting)
+	if getBrandOEM() in ('dreambox',):
+		return "/proc/stb/vmpeg/0/dst_%s" % (setting)
+	else:
+		return "/proc/stb/fb/dst_%s" % (setting)
 
 
 def setPositionParameter(parameter, configElement):

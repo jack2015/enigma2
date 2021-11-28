@@ -3,7 +3,8 @@ from Components.ActionMap import HelpableActionMap
 from Components.config import config
 from Components.Sources.StaticText import StaticText
 
-import Components.HdmiCec
+if path.exists('/dev/hdmi_cec') or path.exists('/dev/misc/hdmi_cec0'):
+	import Components.HdmiCec
 
 
 class HdmiCECSetupScreen(Setup):
