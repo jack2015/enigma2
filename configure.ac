@@ -105,6 +105,7 @@ fi
 
 if test "$BOXTYPE" == "dm7080" -o "$BOXTYPE" == "dm820"  -o "$BOXTYPE" == "dm900" -o "$BOXTYPE" == "dm920" -o "$BOXTYPE" == "dm520"; then
 	AC_DEFINE(CONFIG_ION, 1,[define BOX use ION Allocator])
+fi
 
 AC_ARG_WITH(accelerationthreshold,
 	AC_HELP_STRING([--with-accelerationthreshold=n], [use acceleration threshold of n bytes]),
