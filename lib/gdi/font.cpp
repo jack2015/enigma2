@@ -644,12 +644,22 @@ int eTextPara::renderString(const char *string, int rflags, int border)
 	singleLock s(ftlock);
 
 	if (!current_font)
+	{
+		eWarning("[eTextPara] renderString: No current_font!");
 		return -1;
+	}
 
 	if (!current_face)
-		eFatal("[eTextPara] renderString: No current_face!");
+	{
+		eWarning("[eTextPara] renderString: No current_face!");
+		return -1;
+	}
+
 	if (!current_face->size)
-		eFatal("[eTextPara] renderString: No current_face->size!");
+	{
+		eWarning("[eTextPara] renderString: No current_face->size!");
+		return -1;
+	}
 
 	if (cursor.y()==-1)
 	{
@@ -1233,7 +1243,7 @@ void eTextPara::realign(int dir)	// der code hier ist ein wenig merkwuerdig.
 			if (linelength > area.width())
 				return;
 			dir = dirCenter;
-			// fall-through on purpose
+			[[fallthrough]];
 		case dirRight:
 		case dirCenter:
 		case dirBidi:
