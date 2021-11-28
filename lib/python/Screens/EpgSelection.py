@@ -1,16 +1,21 @@
+from __future__ import print_function
+from Screens.InfoBar import InfoBar
+from enigma import eServiceReference
 from Components.ActionMap import HelpableActionMap
-from Components.EpgList import EPG_TYPE_SINGLE
 from Screens.EpgSelectionChannel import EPGSelectionChannel
+from Screens.EpgSelectionBase import EPGServiceZap
+from Screens.TimerEntry import addTimerFromEventSilent
 
 
 # Keep for backwards compatibility with plugins, including the parameter naming.
 # This class assumes that EPGSelection is only used in the SingleEPG sense.
-class EPGSelection(EPGSelectionChannel):
+class EPGSelection(EPGSelectionChannel, EPGServiceZap):
 	def __init__(self, session, service=None, zapFunc=None, eventid=None, bouquetChangeCB=None, serviceChangeCB=None, EPGtype="similar", StartBouquet=None, StartRef=None, bouquets=None):
 		if EPGtype not in ("similar", "single"):
-			print "[EPGSelection] Warning: EPGSelection does not support type '%s'!" % EPGtype
-			print "               Attempting to continue in single EPG mode"
-		EPGSelectionChannel.__init__(self, session, service)
+			print("[EPGSelection] Warning: EPGSelection does not support type '%s'" % EPGtype)
+			print("               Attempting to continue in single EPG mode")
+		EPGSelectionChannel.__init__(self, session, eServiceReference(service))
+		EPGServiceZap.__init__(self, zapFunc or InfoBar.instance.zapToService)
 
 		# Rewrite the EPG actions to invoke the compatibility functions.
 		helpDescription = _("EPG Commands")
@@ -28,6 +33,12 @@ class EPGSelection(EPGSelectionChannel):
 			"blue": (self.blueButtonPressed, _("Add an autotimer for current event")),
 			"bluelong": (self.blueButtonPressedLong, _("Show autotimer list"))
 		}, prio=-1, description=helpDescription)
+
+	# EPGSearch bypasses base class initialisation
+	# try to limit the scope of its quirkyness by providing a limited
+	# initialisation path
+	def EPGSearch_init(self, session):
+		EPGServiceZap.__init__(self, InfoBar.instance.zapToService)
 
 	# Backwards compatibility properties for plugins.
 	@property
@@ -70,6 +81,9 @@ class EPGSelection(EPGSelectionChannel):
 	def infoKeyPressed(self):
 		self.openEventView()
 
+	def eventSelected(self): # used by EPG Search plugin
+		self.openEventView()
+
 	def epgButtonPressed(self):
 		self.openEventView()
 
@@ -86,8 +100,24 @@ class EPGSelection(EPGSelectionChannel):
 	def sortEpg(self):
 		self.sortEPG(self)
 
+	def timerAdd(self):
+		self.addEditTimerMenu()
+
+	def doRecordTimer(self):
+		self.doInstantTimer(0)
+
+	def doZapTimer(self):
+		self.doInstantTimer(1)
+
 	def RecordTimerQuestion(self, manual=False):
-		self.recordTimerQuestion(manual)
+		if manual:
+			self.addEditTimer()
+		else:
+			self.addEditTimerMenu()
+
+	def doInstantTimer(self, zap=0):
+		event, service = self["list"].getCurrent()[:2]
+		addTimerFromEventSilent(self.session, self.refreshTimerActionButton, event, service, zap)
 
 	# Things that need to be able to be overridden.
 	def refreshList(self):

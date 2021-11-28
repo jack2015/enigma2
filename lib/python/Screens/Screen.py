@@ -16,11 +16,12 @@ class Screen(dict):
 	ALLOW_SUSPEND = NO_SUSPEND
 	globalScreen = None
 
-	def __init__(self, session, parent=None):
+	def __init__(self, session, parent=None, mandatoryWidgets=None):
 		dict.__init__(self)
 		self.skinName = self.__class__.__name__
 		self.session = session
 		self.parent = parent
+		self.mandatoryWidgets = mandatoryWidgets
 		self.onClose = []
 		self.onFirstExecBegin = []
 		self.onExecBegin = []
@@ -46,7 +47,7 @@ class Screen(dict):
 		self.summaries = CList()
 		self["Title"] = StaticText()
 		self["ScreenPath"] = StaticText()
-		self["menu_path_compressed"] = StaticText()  # Support legacy screen history skins.
+		self["title"] = StaticText()  # DEBUG: Hack to support for some summary screens.
 		self.screenPath = ""  # This is the current screen path without the title.
 		self.screenTitle = ""  # This is the current screen title without the path.
 
@@ -107,7 +108,11 @@ class Screen(dict):
 			val.destroy()
 			del self[name]
 		self.renderer = []
-		self.__dict__.clear()  # Really delete all elements now.
+		# by setting all attributes to None, we release any references promptly
+		# without completely removing attributes that are expected to exist
+		# dict's clear() can cause crashes due to expected attributes
+		for name in self.__dict__:
+			setattr(self, name, None)
 
 	def close(self, *retval):
 		if not self.execing:
@@ -144,25 +149,33 @@ class Screen(dict):
 	def getScreenPath(self):
 		return self.screenPath
 
-	def setTitle(self, title):
-		if len(self.session.dialog_stack) > 1:
-			self.screenPath = " > ".join(ds[0].getTitle() for ds in self.session.dialog_stack[1:])
+	def setTitle(self, title, showPath=True):
+		try:  # This protects against calls to setTitle() before being fully initialised like self.session is accessed *before* being defined.
+			self.screenPath = ""
+			if self.session.dialog_stack:
+				screenclasses = [ds[0].__class__.__name__ for ds in self.session.dialog_stack]
+				if "MainMenu" in screenclasses:
+					index = screenclasses.index("MainMenu")
+					if self.session and len(screenclasses) > index:
+						self.screenPath = " > ".join(ds[0].getTitle() for ds in self.session.dialog_stack[index:])
+			if self.instance:
+				self.instance.setTitle(title)
+			self.summaries.setTitle(title)
+		except AttributeError:
+			pass
 		self.screenTitle = title
-		if self.instance:
-			self.instance.setTitle(title)
-		self.summaries.setTitle(title)
-		if config.usage.show_menupath.value == "large":
+		if showPath and config.usage.showScreenPath.value == "large" and title:
 			screenPath = ""
 			screenTitle = "%s > %s" % (self.screenPath, title) if self.screenPath else title
-		elif config.usage.show_menupath.value == "small":
+		elif showPath and config.usage.showScreenPath.value == "small":
 			screenPath = "%s >" % self.screenPath if self.screenPath else ""
 			screenTitle = title
 		else:
 			screenPath = ""
 			screenTitle = title
 		self["ScreenPath"].text = screenPath
-		self["menu_path_compressed"].text = screenPath  # Support legacy screen history skins.
 		self["Title"].text = screenTitle
+		self["title"].text = self.screenTitle # DEBUG: Hack to support for some summary screens.
 
 	def getTitle(self):
 		return self.screenTitle
@@ -211,30 +224,23 @@ class Screen(dict):
 		self.__callLaterTimer.start(0, True)
 
 	def applySkin(self):
-		z = 0
 		# DEBUG: baseRes = (getDesktop(GUI_SKIN_ID).size().width(), getDesktop(GUI_SKIN_ID).size().height())
 		baseRes = (720, 576)  # FIXME: A skin might have set another resolution, which should be the base res.
-		idx = 0
-		skinTitleIndex = -1
-		title = self.title
+		zPosition = 0
 		for (key, value) in self.skinAttributes:
-			if key == "zPosition":
-				z = int(value)
-			elif key == "title":
-				skinTitleIndex = idx
-				if title:
-					self.skinAttributes[skinTitleIndex] = ("title", title)
-				else:
-					self["Title"].text = value
-					self.summaries.setTitle(value)
-			elif key == "baseResolution":
+			if key == "baseResolution":
 				baseRes = tuple([int(x) for x in value.split(",")])
-			idx += 1
+			elif key == "zPosition":
+				zPosition = int(value)
 		self.scale = ((baseRes[0], baseRes[0]), (baseRes[1], baseRes[1]))
 		if not self.instance:
-			self.instance = eWindow(self.desktop, z)
-		if skinTitleIndex == -1 and title:
-			self.skinAttributes.append(("title", title))
+			self.instance = eWindow(self.desktop, zPosition)
+		if "title" not in self.skinAttributes and self.screenTitle:
+			self.skinAttributes.append(("title", self.screenTitle))
+		else:
+			for attribute in self.skinAttributes:
+				if attribute[0] == "title":
+					self.setTitle(_(attribute[1]))
 		self.skinAttributes.sort(key=lambda a: {"position": 1}.get(a[0], 0))  # We need to make sure that certain attributes come last.
 		applyAllAttributes(self.instance, self.desktop, self.skinAttributes, self.scale)
 		self.createGUIScreen(self.instance, self.desktop)
@@ -245,7 +251,7 @@ class Screen(dict):
 				if not updateonly:
 					val.GUIcreate(parent)
 				if not val.applySkin(desktop, self):
-					print("[GUISkin] Warning: Skin is missing renderer '%s' in %s." % (val, str(self)))
+					print("[Screen] Warning: Skin is missing renderer '%s' in %s." % (val, str(self)))
 		for key in self:
 			val = self[key]
 			if isinstance(val, GUIComponent):
@@ -254,20 +260,19 @@ class Screen(dict):
 				depr = val.deprecationInfo
 				if val.applySkin(desktop, self):
 					if depr:
-						print("[GUISkin] WARNING: OBSOLETE COMPONENT '%s' USED IN SKIN. USE '%s' INSTEAD!" % (key, depr[0]))
-						print("[GUISkin] OBSOLETE COMPONENT WILL BE REMOVED %s, PLEASE UPDATE!" % depr[1])
+						print("[Screen] WARNING: OBSOLETE COMPONENT '%s' USED IN SKIN. USE '%s' INSTEAD!" % (key, depr[0]))
+						print("[Screen] OBSOLETE COMPONENT WILL BE REMOVED %s, PLEASE UPDATE!" % depr[1])
 				elif not depr:
-					print("[GUISkin] Warning: Skin is missing element '%s' in %s." % (key, str(self)))
+					print("[Screen] Warning: Skin is missing element '%s' in %s." % (key, str(self)))
 		for w in self.additionalWidgets:
 			if not updateonly:
 				w.instance = w.widget(parent)
 				# w.instance.thisown = 0
 			applyAllAttributes(w.instance, desktop, w.skinAttributes, self.scale)
 		for f in self.onLayoutFinish:
-			# DEBUG: if type(f) is not type(self.close):  # Is this the best way to do this?
-			# DEBUG: Is the following an acceptable fix?
 			if not isinstance(f, type(self.close)):
-				exec f in globals(), locals()
+				exec f in globals(), locals()  # Python 2
+				# exec(f, globals(), locals())  # Python 3
 			else:
 				f()
 
@@ -286,3 +291,25 @@ class Screen(dict):
 	def removeSummary(self, summary):
 		if summary is not None:
 			self.summaries.remove(summary)
+
+
+class ScreenSummary(Screen):
+	skin = """
+	<screen position="fill" flags="wfNoBorder">
+		<widget source="global.CurrentTime" render="Label" position="0,0" size="e,20" font="Regular;16" halign="center" valign="center">
+			<convert type="ClockToText">WithSeconds</convert>
+		</widget>
+		<widget source="Title" render="Label" position="0,25" size="e,45" font="Regular;18" halign="center" valign="center" />
+	</screen>"""
+
+	def __init__(self, session, parent):
+		Screen.__init__(self, session, parent=parent)
+		self["Title"] = StaticText(parent.getTitle())
+		names = parent.skinName
+		if not isinstance(names, list):
+			names = [names]
+		self.skinName = ["%sSummary" % x for x in names]  # DEBUG: Proposed for new summary screens.
+		self.skinName.append("ScreenSummary")  # DEBUG: Proposed for new summary screens.
+		self.skinName += ["%s_summary" % x for x in names]
+		self.skinName.append("SimpleSummary")
+		self.skin = parent.__dict__.get("skinSummary", self.skin)  # If parent has a "skinSummary" defined, use that as default.

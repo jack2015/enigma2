@@ -1,4 +1,4 @@
-﻿from Screens.Screen import Screen
+from Screens.Screen import Screen
 from Components.GUIComponent import GUIComponent
 from Components.VariableText import VariableText
 from Components.ActionMap import ActionMap
@@ -17,7 +17,8 @@ from glob import glob
 import Components.Task
 
 # Import smtplib for the actual sending function
-import smtplib, base64
+import smtplib
+import base64
 
 # Here are the email package modules we'll need
 from email.mime.multipart import MIMEMultipart
@@ -25,6 +26,7 @@ from email.mime.text import MIMEText
 from email.Utils import formatdate
 
 _session = None
+
 
 def get_size(start_path=None):
 	total_size = 0
@@ -36,48 +38,34 @@ def get_size(start_path=None):
 		return total_size
 	return 0
 
+
 def AutoLogManager(session=None, **kwargs):
 	global debuglogcheckpoller
 	debuglogcheckpoller = LogManagerPoller()
 	debuglogcheckpoller.start()
 
+
 class LogManagerPoller:
 	"""Automatically Poll LogManager"""
+
 	def __init__(self):
 		# Init Timer
 		self.TrimTimer = eTimer()
 		self.TrashTimer = eTimer()
 
 	def start(self):
-		if self.TrimTimerJob not in self.TrimTimer.callback:
-			self.TrimTimer.callback.append(self.TrimTimerJob)
 		if self.TrashTimerJob not in self.TrashTimer.callback:
 			self.TrashTimer.callback.append(self.TrashTimerJob)
-		self.TrimTimer.startLongTimer(0)
 		self.TrashTimer.startLongTimer(0)
 
 	def stop(self):
-		if self.TrimTimerJob in self.TrimTimer.callback:
-			self.TrimTimer.callback.remove(self.TrimTimerJob)
 		if self.TrashTimerJob in self.TrashTimer.callback:
 			self.TrashTimer.callback.remove(self.TrashTimerJob)
-		self.TrimTimer.stop()
 		self.TrashTimer.stop()
-
-	def TrimTimerJob(self):
-		print '[LogManager] Trim Poll Started'
-		Components.Task.job_manager.AddJob(self.createTrimJob())
 
 	def TrashTimerJob(self):
 		print '[LogManager] Trash Poll Started'
 		Components.Task.job_manager.AddJob(self.createTrashJob())
-
-	def createTrimJob(self):
-		job = Components.Task.Job(_("LogManager"))
-		task = Components.Task.PythonTask(job, _("Checking Logs..."))
-		task.work = self.JobTrim
-		task.weighting = 1
-		return job
 
 	def createTrashJob(self):
 		job = Components.Task.Job(_("LogManager"))
@@ -90,22 +78,9 @@ class LogManagerPoller:
 		ctimeLimit = ctimeLimit
 		allowedBytes = allowedBytes
 
-	def JobTrim(self):
-		filename = ""
-		for filename in glob(config.crash.debug_path.value + '*.log'):
-			if path.getsize(filename) > (config.crash.debugloglimit.value * 1024 * 1024):
-				fh = open(filename, 'rb+')
-				fh.seek(-(config.crash.debugloglimit.value * 1024 * 1024), 2)
-				data = fh.read()
-				fh.seek(0) # rewind
-				fh.write(data)
-				fh.truncate()
-				fh.close()
-		self.TrimTimer.startLongTimer(3600) #once an hour
-
 	def JobTrash(self):
 		ctimeLimit = time() - (config.crash.daysloglimit.value * 3600 * 24)
-		allowedBytes = 1024*1024 * int(config.crash.sizeloglimit.value)
+		allowedBytes = 1024 * 1024 * int(config.crash.sizeloglimit.value)
 
 		mounts = []
 		matches = []
@@ -117,8 +92,8 @@ class LogManagerPoller:
 		f.close()
 
 		for mount in mounts:
-			if path.isdir(path.join(mount,'logs')):
-				matches.append(path.join(mount,'logs'))
+			if path.isdir(path.join(mount, 'logs')):
+				matches.append(path.join(mount, 'logs'))
 		matches.append('/home/root/logs')
 
 		print "[LogManager] found following log's:", matches
@@ -142,7 +117,7 @@ class LogManagerPoller:
 								candidates.append((st.st_ctime, fn, st.st_size))
 								size += st.st_size
 						except Exception, e:
-							print "[LogManager] Failed to stat %s:"% name, e
+							print "[LogManager] Failed to stat %s:" % name, e
 					# Remove empty directories if possible
 					for name in dirs:
 						try:
@@ -160,6 +135,7 @@ class LogManagerPoller:
 						size -= st_size
 		self.TrashTimer.startLongTimer(43200) #twice a day
 
+
 class LogManager(Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
@@ -172,7 +148,6 @@ class LogManager(Screen):
 				'red': self.changelogtype,
 				'green': self.showLog,
 				'yellow': self.deletelog,
-				'blue': self.sendlog_bh,
 				"left": self.left,
 				"right": self.right,
 				"down": self.down,
@@ -183,12 +158,12 @@ class LogManager(Screen):
 		self["key_green"] = Button(_("View"))
 		self["key_yellow"] = Button(_("Delete"))
 
-		self.onChangedEntry = [ ]
+		self.onChangedEntry = []
 		self.sentsingle = ""
 		self.selectedFiles = config.logmanager.sentfiles.value
 		self.defaultDir = config.crash.debug_path.value
 		self.matchingPattern = 'Enigma2_crash_'
-		self.filelist = MultiFileSelectList(self.selectedFiles, self.defaultDir, showDirectories = False, matchingPattern = self.matchingPattern )
+		self.filelist = MultiFileSelectList(self.selectedFiles, self.defaultDir, showDirectories=False, matchingPattern=self.matchingPattern)
 		self["list"] = self.filelist
 		self["LogsSize"] = self.logsinfo = LogInfo(config.crash.debug_path.value, LogInfo.USED, update=False)
 		self.onLayoutFinish.append(self.layoutFinished)
@@ -285,7 +260,7 @@ class LogManager(Screen):
 			ybox = self.session.openWithCallback(self.doDelete3, MessageBox, message, MessageBox.TYPE_YESNO)
 			ybox.setTitle(_("Delete Confirmation"))
 		else:
-			self.session.open(MessageBox, _("You have not selected any logs to delete."), MessageBox.TYPE_INFO, timeout = 10)
+			self.session.open(MessageBox, _("You have not selected any logs to delete."), MessageBox.TYPE_INFO, timeout=10)
 
 	def doDelete1(self, answer):
 		self.selectedFiles = self["list"].getSelectedList()
@@ -319,9 +294,7 @@ class LogManager(Screen):
 				remove(self.defaultDir + self.sel[0])
 			self["list"].changeDir(self.defaultDir)
 			self["LogsSize"].update(config.crash.debug_path.value)
-			
-	def sendlog_bh(self, addtionalinfo = None):
-		self.session.open(MessageBox, _("Sorry due to spamming, log sending has been disabled.\nPlease post your log @ www.vuplus-community.net."), MessageBox.TYPE_INFO)
+
 
 class LogManagerViewLog(Screen):
 	def __init__(self, session, selected):
@@ -346,6 +319,7 @@ class LogManagerViewLog(Screen):
 	def cancel(self):
 		self.close()
 
+
 class LogManagerFb(Screen):
 	def __init__(self, session, logpath=None):
 		if logpath is None:
@@ -357,13 +331,13 @@ class LogManagerFb(Screen):
 		self.session = session
 		Screen.__init__(self, session)
 
-		self["list"] = FileList(logpath, matchingPattern = "^.*")
+		self["list"] = FileList(logpath, matchingPattern="^.*")
 		self["red"] = Label(_("delete"))
 		self["green"] = Label(_("move"))
 		self["yellow"] = Label(_("copy"))
 		self["blue"] = Label(_("rename"))
 
-		self["actions"] = ActionMap(["ChannelSelectBaseActions","WizardActions", "DirectionActions", "MenuActions", "NumberActions", "ColorActions"],
+		self["actions"] = ActionMap(["ChannelSelectBaseActions", "WizardActions", "DirectionActions", "MenuActions", "NumberActions", "ColorActions"],
 			{
 			 "ok": self.ok,
 			 "back": self.exit,
@@ -415,12 +389,13 @@ class LogManagerFb(Screen):
 			config.logmanager.path.save()
 		self.close()
 
+
 class LogInfo(VariableText, GUIComponent):
 	FREE = 0
 	USED = 1
 	SIZE = 2
 
-	def __init__(self, path, type, update = True):
+	def __init__(self, path, type, update=True):
 		GUIComponent.__init__(self)
 		VariableText.__init__(self)
 		self.type = type

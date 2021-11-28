@@ -1,7 +1,7 @@
 installdir = $(pkglibdir)/python/Plugins/SystemPlugins
 
 SUBDIRS = PositionerSetup Satfinder \
-	VideoTune Hotplug \
+	VideoTune Hotplug OpentvZapper \
 	DefaultServicesScanner CommonInterfaceAssignment \
 	HdmiCEC VideoClippingSetup \
 	VideoEnhancement WirelessLan NetworkWizard \
@@ -44,6 +44,10 @@ SUBDIRS += CableScan
 endif
 
 if VUDUO4K
+SUBDIRS += CableScan
+endif
+
+if VUDUO4KSE
 SUBDIRS += CableScan
 endif
 

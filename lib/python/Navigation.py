@@ -17,6 +17,8 @@ from Screens.InfoBar import InfoBar, MoviePlayer
 from Components.Sources.StreamService import StreamServiceList
 
 # TODO: remove pNavgation, eNavigation and rewrite this stuff in python.
+
+
 class Navigation:
 	def __init__(self, nextRecordTimerAfterEventActionAuto=False, nextPowerManagerAfterEventActionAuto=False):
 		if NavigationInstance.instance is not None:
@@ -31,8 +33,8 @@ class Navigation:
 		self.pnav = pNavigation()
 		self.pnav.m_event.get().append(self.dispatchEvent)
 		self.pnav.m_record_event.get().append(self.dispatchRecordEvent)
-		self.event = [ ]
-		self.record_event = [ ]
+		self.event = []
+		self.record_event = []
 		self.currentlyPlayingServiceReference = None
 		self.currentlyPlayingServiceOrGroup = None
 		self.currentlyPlayingService = None
@@ -47,7 +49,7 @@ class Navigation:
 
 	def _processTimerWakeup(self):
 		now = time()
-		timeHandlerCallbacks =  eDVBLocalTimeHandler.getInstance().m_timeUpdated.get()
+		timeHandlerCallbacks = eDVBLocalTimeHandler.getInstance().m_timeUpdated.get()
 		if self.__nextRecordTimerAfterEventActionAuto and now < eDVBLocalTimeHandler.timeOK:  # 01.01.2004
 			print '[Navigation] RECTIMER: wakeup to standby but system time not set.'
 			if self._processTimerWakeup not in timeHandlerCallbacks:
@@ -143,7 +145,7 @@ class Navigation:
 					if alternativeref and self.pnav and self.pnav.playService(alternativeref):
 						print "[Navigation] Failed to start", alternativeref
 					return 0
-				elif checkParentalControl and not parentalControl.isServicePlayable(playref, boundFunction(self.playService, checkParentalControl = False)):
+				elif checkParentalControl and not parentalControl.isServicePlayable(playref, boundFunction(self.playService, checkParentalControl=False)):
 					if self.currentlyPlayingServiceOrGroup and InfoBarInstance and InfoBarInstance.servicelist.servicelist.setCurrent(self.currentlyPlayingServiceOrGroup, adjust):
 						self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
 					return 1
@@ -200,17 +202,8 @@ class Navigation:
 	def getCurrentlyPlayingServiceOrGroup(self):
 		return self.currentlyPlayingServiceOrGroup
 
-	def isMovieplayerActive(self):
-		MoviePlayerInstance = MoviePlayer.instance
-		if MoviePlayerInstance is not None and '0:0:0:0:0:0:0:0:0' in self.currentlyPlayingServiceReference.toString():
-			from Screens.InfoBarGenerics import setResumePoint
-			setResumePoint(MoviePlayer.instance.session)
-			MoviePlayerInstance.close()
-
 	def recordService(self, ref, simulate=False):
 		service = None
-		if isinstance(ref, ServiceReference.ServiceReference):
-			ref = ref.ref
 		if not simulate:
 			print "[Navigation] recording service:", (ref and ref.toString())
 		if ref:

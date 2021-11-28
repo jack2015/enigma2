@@ -17,17 +17,17 @@ import urllib2
 if getImageType() == 'release':
 	ImageVer = "%03d" % int(getImageBuild())
 else:
-	ImageVer = "%s.%s" % (getImageBuild(),getImageDevBuild())
+	ImageVer = "%s.%s" % (getImageBuild(), getImageDevBuild())
 	ImageVer = float(ImageVer)
 
 E2Branches = {
-	'developer' : 'Dev',
-	'release' : 'master'
+	'developer': 'Dev',
+	'release': 'master'
 	}
 
 project = 0
 projects = [
-	("https://api.github.com/repos/oe-alliance/oe-alliance-core/commits?sha=4.3", "OE-A Core"),
+	("https://api.github.com/repos/oe-alliance/oe-alliance-core/commits?sha=4.4", "OE-A Core"),
 	("https://api.github.com/repos/BlackHole/enigma2/commits?sha=%s" % E2Branches[getImageType()], "Enigma2"),
 	("https://api.github.com/repos/BlackHole/obh-core/commits", "OBH Core"),
 	("https://api.github.com/repos/BlackHole/skins/commits", "OBH Skins"),
@@ -36,6 +36,7 @@ projects = [
 	("https://api.github.com/repos/oe-alliance/branding-module/commits", "Branding Module"),
 ]
 cachedProjects = {}
+
 
 def readGithubCommitLogsSoftwareUpdate():
 	global ImageVer
@@ -58,6 +59,9 @@ def readGithubCommitLogsSoftwareUpdate():
 					continue
 				elif getImageType() != 'release' and c['commit']['message'].startswith('openbh: release'):
 					print '[GitCommitLog] Skipping release line'
+					continue
+				elif c['commit']['message'].startswith('openbh: 4.4'):
+					print '[GitCommitLog] Skipping broken release line'
 					continue
 				tmp = c['commit']['message'].split(' ')[2].split('.')
 				if len(tmp) > 2:
@@ -90,10 +94,11 @@ def readGithubCommitLogsSoftwareUpdate():
 	except urllib2, err:
 		print '[GitCommitLog] The commit log cannot be retrieved at the moment - please try again later.', err
 		commitlog += _("The commit log cannot be retrieved at the moment - please try again later.\n")
-	except Exception , err:
+	except Exception, err:
 		print '[GitCommitLog] The commit log cannot be retrieved at the moment - please try again later.', err
 		commitlog += _("The commit log cannot be retrieved at the moment - please try again later.")
 	return commitlog
+
 
 def readGithubCommitLogs():
 	global ImageVer
@@ -120,6 +125,9 @@ def readGithubCommitLogs():
 					continue
 				elif getImageType() == 'developer' and c['commit']['message'].startswith('openbh: release'):
 					print '[GitCommitLog] Skipping release line'
+					continue
+				elif c['commit']['message'].startswith('openbh: 4.4'):
+					print '[GitCommitLog] Skipping broken release line', c['commit']['message']
 					continue
 				tmp = c['commit']['message'].split(' ')[2].split('.')
 				if len(tmp) > 2:
@@ -155,23 +163,28 @@ def readGithubCommitLogs():
 	except urllib2, err:
 		print '[GitCommitLog] The commit log cannot be retrieved at the moment - please try again later.', err
 		commitlog += _("The commit log cannot be retrieved at the moment - please try again later.\n")
-	except Exception , err:
+	except Exception, err:
 		print '[GitCommitLog] The commit log cannot be retrieved at the moment - please try again later.', err
 		commitlog += _("The commit log cannot be retrieved at the moment - please try again later.")
 	return commitlog
 
+
 def getScreenTitle():
 	return projects[project][1]
+
 
 def left():
 	global project
 	project = project == 0 and len(projects) - 1 or project - 1
 
+
 def right():
 	global project
 	project = project != len(projects) - 1 and project + 1 or 0
 
+
 gitcommitinfo = modules[__name__]
+
 
 class CommitInfo(Screen):
 	def __init__(self, session):
@@ -201,7 +214,7 @@ class CommitInfo(Screen):
 		self["AboutScrollLabel"].setText(gitcommitinfo.readGithubCommitLogs().encode("utf8", errors="ignore"))
 
 	def updateCommitLogs(self):
-		if gitcommitinfo.cachedProjects.has_key(gitcommitinfo.getScreenTitle()):
+		if gitcommitinfo.getScreenTitle() in gitcommitinfo.cachedProjects:
 			self.setTitle(gitcommitinfo.getScreenTitle())
 			self["AboutScrollLabel"].setText(gitcommitinfo.cachedProjects[gitcommitinfo.getScreenTitle()])
 		else:

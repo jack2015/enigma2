@@ -1,13 +1,15 @@
 from Components.Converter.StringList import StringList
 
+
 class TemplatedMultiContent(StringList):
 	"""Turns a python tuple list into a multi-content list which can be used in a listbox renderer."""
 
 	def __init__(self, args):
 		StringList.__init__(self, args)
 		from enigma import BT_SCALE, RT_HALIGN_CENTER, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_VALIGN_BOTTOM, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_WRAP, eListboxPythonMultiContent, gFont
-		from skin import parseFont
+		from skin import parseFont, getSkinFactor
 		from Components.MultiContent import MultiContentEntryPixmap, MultiContentEntryPixmapAlphaBlend, MultiContentEntryPixmapAlphaTest, MultiContentEntryProgress, MultiContentEntryProgressPixmap, MultiContentEntryText, MultiContentTemplateColor
+		f = getSkinFactor()
 		loc = locals()
 		del loc["self"]  # Cleanup locals a bit.
 		del loc["args"]
@@ -52,7 +54,7 @@ class TemplatedMultiContent(StringList):
 				if len(templates[style]) > 3:
 					scrollbarMode = templates[style][3]
 			self.content.setTemplate(template)
-			self.content.setItemHeight(itemheight)
+			self.content.setItemHeight(int(itemheight))
 			self.selectionEnabled = selectionEnabled
 			self.scrollbarMode = scrollbarMode
 			self.active_style = style

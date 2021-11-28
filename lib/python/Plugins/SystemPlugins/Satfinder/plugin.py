@@ -1,4 +1,4 @@
-from enigma import eDVBResourceManager, eDVBFrontendParametersSatellite, eDVBFrontendParametersTerrestrial
+from enigma import eDVBResourceManager, eDVBFrontendParametersSatellite, eDVBFrontendParametersTerrestrial, eTimer
 
 from Screens.ScanSetup import ScanSetup, buildTerTransponder
 from Screens.ServiceScan import ServiceScan
@@ -18,16 +18,21 @@ from Screens.Screen import Screen # for services found class
 
 try: # for reading the current transport stream (SatfinderExtra)
 	from Plugins.SystemPlugins.AutoBouquetsMaker.scanner import dvbreader
-	from Components.Sources.StaticText import StaticText
-	from Components.ScrollLabel import ScrollLabel
-	from Components.Label import Label
-	import time
-	import datetime
-	import thread
 	dvbreader_available = True
 except ImportError:
 	print "[Satfinder] import dvbreader not available"
 	dvbreader_available = False
+
+if dvbreader_available:
+	from skin import parameters
+	from Components.Sources.StaticText import StaticText
+	from Components.ScrollLabel import ScrollLabel
+	from Components.Label import Label
+	from Tools.Hex2strColor import Hex2strColor
+	import time
+	import datetime
+	import thread
+
 
 class Satfinder(ScanSetup, ServiceScan):
 	"""Inherits StaticText [key_red] and [key_green] properties from ScanSetup"""
@@ -55,16 +60,19 @@ class Satfinder(ScanSetup, ServiceScan):
 		self.frontend = None
 		self.is_id_boolEntry = None
 		self.t2mi_plp_id_boolEntry = None
+		self.timer = eTimer()
+		self.timer.callback.append(self.updateFrontendStatus)
 
 		ScanSetup.__init__(self, session)
+		self.entryChanged = self.newConfig
 		self.setTitle(_("Signal finder"))
-		self["Frontend"] = FrontendStatus(frontend_source = lambda : self.frontend, update_interval = 100)
+		self["Frontend"] = FrontendStatus(frontend_source=lambda: self.frontend, update_interval=100)
 
-		self["actions"] = ActionMap(["SetupActions", "ColorActions"],
+		self["actions"] = ActionMap(["CancelSaveActions"],
 		{
 			"save": self.keyGoScan,
-			"ok": self.keyGoScan,
 			"cancel": self.keyCancel,
+			"close": self.doCloseRecursive,
 		}, -3)
 
 		self.initcomplete = True
@@ -95,6 +103,15 @@ class Satfinder(ScanSetup, ServiceScan):
 						self.frontend = None # in normal case this should not happen
 		self.tuner = Tuner(self.frontend)
 		self.retune()
+
+	def updateFrontendStatus(self):
+		if self.frontend:
+			dict = {}
+			self.frontend.getFrontendStatus(dict)
+			if dict["tuner_state"] == "FAILED" or dict["tuner_state"] == "LOSTLOCK":
+				self.retune()
+			else:
+				self.timer.start(500, True)
 
 	def __onClose(self):
 		self.session.nav.playService(self.session.postScanService)
@@ -252,13 +269,13 @@ class Satfinder(ScanSetup, ServiceScan):
 				else:
 					self.scan_input_as.value = self.scan_input_as.choices[0]
 				if self.ter_channel_input and self.scan_input_as.value == "channel":
-					channel = getChannelNumber(self.scan_ter.frequency.value*1000, self.ter_tnumber)
+					channel = getChannelNumber(self.scan_ter.frequency.value * 1000, self.ter_tnumber)
 					if channel:
-						self.scan_ter.channel.value = int(channel.replace("+","").replace("-",""))
+						self.scan_ter.channel.value = int(channel.replace("+", "").replace("-", ""))
 					self.list.append(getConfigListEntry(_("Channel"), self.scan_ter.channel))
 				else:
 					prev_val = self.scan_ter.frequency.value
-					self.scan_ter.frequency.value = channel2frequency(self.scan_ter.channel.value, self.ter_tnumber)/1000
+					self.scan_ter.frequency.value = channel2frequency(self.scan_ter.channel.value, self.ter_tnumber) / 1000
 					if self.scan_ter.frequency.value == 474000:
 						self.scan_ter.frequency.value = prev_val
 					self.list.append(getConfigListEntry(_("Frequency (kHz)"), self.scan_ter.frequency))
@@ -299,7 +316,7 @@ class Satfinder(ScanSetup, ServiceScan):
 		self["config"].l.setList(self.list)
 
 	def createConfig(self, foo):
-		self.tuning_type = ConfigSelection(default = "predefined_transponder", choices = [("single_transponder", _("User defined transponder")), ("predefined_transponder", _("Predefined transponder"))])
+		self.tuning_type = ConfigSelection(default="predefined_transponder", choices=[("single_transponder", _("User defined transponder")), ("predefined_transponder", _("Predefined transponder"))])
 		self.orbital_position = 192
 		if self.frontendData and 'orbital_position' in self.frontendData:
 			self.orbital_position = self.frontendData['orbital_position']
@@ -321,20 +338,20 @@ class Satfinder(ScanSetup, ServiceScan):
 			self.scan_cab.frequency, self.scan_cab.inversion, self.scan_cab.symbolrate,
 			self.scan_cab.modulation, self.scan_cab.fec,
 			self.scan_ats.frequency, self.scan_ats.modulation, self.scan_ats.inversion):
-			x.addNotifier(self.retune, initial_call = False)
+			x.addNotifier(self.retune, initial_call=False)
 
 		satfinder_nim_list = []
 		for n in nimmanager.nim_slots:
 			if not any([n.isCompatible(x) for x in "DVB-S", "DVB-T", "DVB-C", "ATSC"]):
 				continue
-			if n.config_mode  in ("loopthrough", "satposdepends", "nothing"):
+			if n.config_mode in ("loopthrough", "satposdepends", "nothing"):
 				continue
 			if n.isCompatible("DVB-S") and len(nimmanager.getSatListForNim(n.slot)) < 1:
 				continue
 			if n.isCompatible("DVB-S") and n.isFBCTuner() and not n.isFBCRoot():
 				continue
 			satfinder_nim_list.append((str(n.slot), n.friendly_full_description))
-		self.satfinder_scan_nims = ConfigSelection(choices = satfinder_nim_list)
+		self.satfinder_scan_nims = ConfigSelection(choices=satfinder_nim_list)
 		if self.frontendData is not None and len(satfinder_nim_list) > 0: # open the plugin with the currently active NIM as default
 			active_nim = self.frontendData.get("tuner_number", int(satfinder_nim_list[0][0]))
 			if not nimmanager.nim_slots[active_nim].isFBCLink():
@@ -363,13 +380,13 @@ class Satfinder(ScanSetup, ServiceScan):
 				self.tuning_type.value = "single_transponder"
 
 	def getSelectedSatIndex(self, v):
-		index    = 0
+		index = 0
 		none_cnt = 0
 		for n in self.satList:
 			if self.satList[index] is None:
 				none_cnt += 1
 			if index == int(v):
-				return index-none_cnt
+				return index - none_cnt
 			index += 1
 		return -1
 
@@ -382,7 +399,7 @@ class Satfinder(ScanSetup, ServiceScan):
 		if self.tuning_type.value == "single_transponder":
 			transponder = (
 				self.scan_cab.frequency.value,
-				self.scan_cab.symbolrate.value*1000,
+				self.scan_cab.symbolrate.value * 1000,
 				self.scan_cab.modulation.value,
 				self.scan_cab.fec.value,
 				self.scan_cab.inversion.value
@@ -391,7 +408,7 @@ class Satfinder(ScanSetup, ServiceScan):
 			self.transponder = transponder
 		elif self.tuning_type.value == "predefined_transponder":
 			tps = nimmanager.getTranspondersCable(int(self.satfinder_scan_nims.value))
-			if len(tps) > self.CableTransponders.index :
+			if len(tps) > self.CableTransponders.index:
 				tp = tps[self.CableTransponders.index]
 				# tp = 0 transponder type, 1 freq, 2 sym, 3 mod, 4 fec, 5 inv, 6 sys
 				transponder = (tp[1], tp[2], tp[3], tp[4], tp[5])
@@ -424,7 +441,7 @@ class Satfinder(ScanSetup, ServiceScan):
 		elif self.tuning_type.value == "predefined_transponder":
 			region = nimmanager.getTerrestrialDescription(int(self.satfinder_scan_nims.value))
 			tps = nimmanager.getTranspondersTerrestrial(region)
-			if len(tps) > self.TerrestrialTransponders.index :
+			if len(tps) > self.TerrestrialTransponders.index:
 				transponder = tps[self.TerrestrialTransponders.index]
 				# frequency 1, inversion 9, bandwidth 2, fechigh 4, feclow 5, modulation 3, transmission 7, guard 6, hierarchy 8, system 10, plp_id 11
 				self.tuner.tuneTerr(transponder[1], transponder[9], transponder[2], transponder[4], transponder[5], transponder[3], transponder[7], transponder[6], transponder[8], transponder[10], transponder[11])
@@ -435,7 +452,7 @@ class Satfinder(ScanSetup, ServiceScan):
 			return
 		if self.tuning_type.value == "single_transponder":
 			transponder = (
-				self.scan_ats.frequency.value*1000,
+				self.scan_ats.frequency.value * 1000,
 				self.scan_ats.modulation.value,
 				self.scan_ats.inversion.value,
 				self.scan_ats.system.value,
@@ -497,6 +514,7 @@ class Satfinder(ScanSetup, ServiceScan):
 			self.retuneCab()
 		elif self.DVB_type.value == "ATSC":
 			self.retuneATSC()
+		self.timer.start(500, True)
 
 	def keyGoScan(self):
 		self.frontend = None
@@ -574,20 +592,21 @@ class Satfinder(ScanSetup, ServiceScan):
 			del self.raw_channel
 		self.close(True)
 
+
 class SatfinderExtra(Satfinder):
 	# This class requires AutoBouquetsMaker to be installed.
 	def __init__(self, session):
 		Satfinder.__init__(self, session)
 		self.skinName = ["Satfinder"]
-		
+
 		self["key_yellow"] = StaticText("")
-		
+
 		self["actions2"] = ActionMap(["ColorActions"],
 		{
 			"yellow": self.keyReadServices,
 		}, -3)
 		self["actions2"].setEnabled(False)
-		
+
 		# DVB stream info
 		self.serviceList = []
 		self["tsid"] = StaticText("")
@@ -612,7 +631,7 @@ class SatfinderExtra(Satfinder):
 		print "[satfinder][dvb_read_stream] starting"
 		thread.start_new_thread(self.getCurrentTsidOnid, (True,))
 
-	def getCurrentTsidOnid(self, from_retune = False):
+	def getCurrentTsidOnid(self, from_retune=False):
 		self.currentProcess = currentProcess = datetime.datetime.now()
 		self["tsid"].setText("")
 		self["onid"].setText("")
@@ -790,18 +809,18 @@ class SatfinderExtra(Satfinder):
 		else:
 			print "[satfinder][getOrbPosFromNit] no orbital position found"
 
-	def getOrbitalPosition(self, bcd, w_e_flag = 1):
+	def getOrbitalPosition(self, bcd, w_e_flag=1):
 		# 4 bit BCD (binary coded decimal)
 		# w_e_flag, 0 == west, 1 == east
 		op = 0
 		bits = 4
 		for i in range(bits):
-			op += ((bcd >> 4*i) & 0x0F) * 10**i
+			op += ((bcd >> 4 * i) & 0x0F) * 10**i
 		if op > 1800:
 			op = (3600 - op) * -1
 		if w_e_flag == 0:
 			op *= -1
-		return "%0.1f%s" % (abs(op)/10., "W" if op < 0 else "E")
+		return "%0.1f%s" % (abs(op) / 10., "W" if op < 0 else "E")
 
 	def tunerLock(self):
 		frontendStatus = {}
@@ -849,29 +868,31 @@ class SatfinderExtra(Satfinder):
 	def keyReadServices(self):
 		if not self.serviceList:
 			return
-		tv = [1, 17, 22, 25]
+		tv = [1, 17, 22, 25, 31]
 		radio = [2, 10]
-		green = "\c0088??88" # FTA tv
-		red = "\c00??8888" # encrypted tv
-		yellow = "\c00????00" # data/interactive/catch-all/etc
-		blue = "\c007799??" # radio
-		no_colour = "\c00??????"
+		colors = parameters.get("SatfinderExtraColors", (0x0088FF88, 0x00FF8888, 0x00FFFF00, 0x007799FF, 0x00FFFFFF)) # "FTA", "encrypted", "data", "radio", "default" colors
+		fta_color = Hex2strColor(colors[0])
+		encrypted_color = Hex2strColor(colors[1])
+		data_color = Hex2strColor(colors[2])
+		radio_color = Hex2strColor(colors[3])
+		default_color = Hex2strColor(colors[4])
 		out = []
-		legend = "%s%s%s:  %s%s%s  %s%s%s  %s%s%s  %s%s%s\n\n%s%s%s\n" % (no_colour, _("Key"), no_colour, green, _("FTA TV"), no_colour, red, _("Encrypted TV"), no_colour, blue, _("Radio"), no_colour, yellow, _("Other"), no_colour, no_colour, _("Channels"), no_colour)
-#		out.append("%s%s%s:" % (no_colour, _("Channels"), no_colour))
+		legend = "%s%s%s:  %s%s%s  %s%s%s  %s%s%s  %s%s%s\n\n%s%s%s\n" % (default_color, _("Key"), default_color, fta_color, _("FTA TV"), default_color, encrypted_color, _("Encrypted TV"), default_color, radio_color, _("Radio"), default_color, data_color, _("Other"), default_color, default_color, _("Channels"), default_color)
+#		out.append("%s%s%s:" % (default_color, _("Channels"), default_color))
 		for service in self.serviceList:
 			fta = "free_ca" in service and service["free_ca"] == 0
 			if service["service_type"] in radio:
-				colour = blue
+				color = radio_color
 			elif service["service_type"] not in tv: # data/interactive/etc
-				colour = yellow
+				color = data_color
 			elif fta:
-				colour = green
+				color = fta_color
 			else:
-				colour = red
-			out.append("- %s%s%s" % (colour, service["service_name"], no_colour))
+				color = encrypted_color
+			out.append("- %s%s%s" % (color, service["service_name"], default_color))
 
 		self.session.open(ServicesFound, "\n".join(out), legend)
+
 
 class ServicesFound(Screen):
 	skin = """
@@ -895,8 +916,8 @@ class ServicesFound(Screen):
 			"back": self.close,
 			"red": self.close,
 			"up": self.pageUp,
-			"down":	self.pageDown,
-			"left":	self.pageUp,
+			"down": self.pageDown,
+			"left": self.pageUp,
 			"right": self.pageDown,
 		}, -2)
 
@@ -906,9 +927,11 @@ class ServicesFound(Screen):
 	def pageDown(self):
 		self["servicesfound"].pageDown()
 
+
 def SatfinderCallback(close, answer):
 	if close and answer:
 		close(True)
+
 
 def SatfinderMain(session, close=None, **kwargs):
 	nims = nimmanager.nim_slots
@@ -930,14 +953,16 @@ def SatfinderMain(session, close=None, **kwargs):
 		else:
 			session.openWithCallback(boundFunction(SatfinderCallback, close), Satfinder)
 
+
 def SatfinderStart(menuid, **kwargs):
 	if menuid == "scan" and nimmanager.somethingConnected():
 		return [(_("Signal finder"), SatfinderMain, "satfinder", 35, True)]
 	else:
 		return []
 
+
 def Plugins(**kwargs):
 	if any([nimmanager.hasNimType(x) for x in "DVB-S", "DVB-T", "DVB-C", "ATSC"]):
-		return PluginDescriptor(name=_("Signal finder"), description=_("Helps setting up your antenna"), where = PluginDescriptor.WHERE_MENU, needsRestart = False, fnc=SatfinderStart)
+		return PluginDescriptor(name=_("Signal finder"), description=_("Helps setting up your antenna"), where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=SatfinderStart)
 	else:
 		return []

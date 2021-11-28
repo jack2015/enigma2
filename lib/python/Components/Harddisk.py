@@ -63,6 +63,7 @@ opticalDisks = [
 	113  # IBM iSeries virtual CD-ROM
 ]
 
+
 def readFile(filename):
 	try:
 		with open(filename, "r") as fd:
@@ -73,6 +74,7 @@ def readFile(filename):
 		data = None
 	return data
 
+
 def runCommand(command):
 	print "[Harddisk] Command: '%s'." % command
 	exitStatus = os.system(command)
@@ -80,6 +82,7 @@ def runCommand(command):
 	if exitStatus:
 		print "[Harddisk] Error: Command '%s' returned error code %d!" % (command, exitStatus)
 	return exitStatus
+
 
 def getProcMounts():
 	try:
@@ -93,6 +96,7 @@ def getProcMounts():
 		item[1] = item[1].replace("\\040", " ")  # Spaces are encoded as \040 in mounts.
 	return result
 
+
 def isFileSystemSupported(filesystem):
 	try:
 		with open("/proc/filesystems", "r") as fd:
@@ -103,6 +107,7 @@ def isFileSystemSupported(filesystem):
 		print "[Harddisk] Error: Failed to read '/proc/filesystems':", err
 	return False
 
+
 def findMountPoint(path):
 	'Example: findMountPoint("/media/hdd/some/file") returns "/media/hdd"'
 	path = os.path.abspath(path)
@@ -110,12 +115,14 @@ def findMountPoint(path):
 		path = os.path.dirname(path)
 	return path
 
+
 def internalHDDNotSleeping():
 	if harddiskmanager.HDDCount():
 		for hdd in harddiskmanager.HDDList():
 			if ("sata" in hdd[1].phys_path or "pci" in hdd[1].phys_path or "ahci" in hdd[1].phys_path) and hdd[1].max_idle_time and not hdd[1].isSleeping():
 				return True
 	return False
+
 
 def addInstallTask(job, package):
 	task = Task.LoggingTask(job, _("Update packages..."))
@@ -425,6 +432,7 @@ class Harddisk:
 		task = Task.ConditionTask(job, _("Waiting for partition."))
 		task.check = lambda: os.path.exists(self.partitionPath("1"))
 		task.weighting = 1
+		task = UnmountTask(job, self)
 		print "[Harddisk] Creating filesystem."
 		task = MkfsTask(job, _("Creating filesystem."))
 		big_o_options = ["dir_index"]
@@ -574,7 +582,7 @@ class Harddisk:
 
 	def deviceState(self, device):
 		hotplugBuses = ("usb", "mmc", "pcmcia", "ieee1394", "firewire")
-		if not self.phys_path.startswith("/sys/devices/platform/"):
+		if not self.phys_path.startswith("/sys/devices/"):
 			return (False, "ERROR")
 		match = None
 		for bus in hotplugBuses:
@@ -583,7 +591,7 @@ class Harddisk:
 				break
 		if match:
 			# print "[Harddisk] DEBUG: Device is removable.  (device='%s', match='%s')" % (device, match)
-			return (False, match)
+			return (False, match.upper())
 		else:
 			# print "[Harddisk] DEBUG: Device is not removable.  (device='%s', No bus)" % (device)
 			return (True, "ATA")
@@ -752,6 +760,8 @@ class HarddiskManager:
 		print "[Harddisk] Enumerating network mounts..."
 		for entry in sorted(os.listdir("/media")):
 			mountEntry = os.path.join("/media", entry)
+			if not os.path.isdir(mountEntry):
+				continue
 			mounts = os.listdir(mountEntry)
 			if len(mounts) > 0:
 				for mount in mounts:
@@ -766,7 +776,7 @@ class HarddiskManager:
 						self.partitions.append(Partition(mountpoint=mountDir, description=mount))
 		if os.path.ismount("/media/hdd") and "/media/hdd/" not in [partition.mountpoint for partition in self.partitions]:
 			print "[Harddisk] new Network Mount being used as HDD replacement -> /media/hdd/"
-			self.partitions.append(Partition(mountpoint = "/media/hdd/", description = "/media/hdd"))
+			self.partitions.append(Partition(mountpoint="/media/hdd/", description="/media/hdd"))
 		print "[Harddisk] Enumerating network mounts complete."
 
 	def getUserfriendlyDeviceName(self, device, physicalDevice):

@@ -8,6 +8,7 @@ from string import upper
 from Tools.Transponder import ConvertToHumanReadable
 from os import rename, system
 
+
 class BhStreamInfo(Poll, Converter, object):
 	DUMMY = 0
 	STREAMURL = 1
@@ -32,22 +33,22 @@ class BhStreamInfo(Poll, Converter, object):
 			refstr = playref.toString()
 			strtype = refstr.replace('%3a', ':')
 			if '0.0.0.0:' in strtype and strtype.startswith('1:0:') or '127.0.0.1:' in strtype and strtype.startswith('1:0:') or 'localhost:' in strtype and strtype.startswith('1:0:'):
-				return 'Internal Ts Relay'
+				return 'Stream Relay'
 			elif '%3a' in refstr and strtype.startswith('4097:0:'):
-				return 'Non Ts Stream'
+				return 'MediaPlayer'
 			elif '%3a' in refstr and strtype.startswith('1:0:'):
-				return 'GStreamer'
+				return 'Enigma2'
 			elif '%3a' in refstr and strtype.startswith('5001:0:'):
-				return 'GstPlayer'
+				return 'GSTPlayer'
 			elif '%3a' in refstr and strtype.startswith('5002:0:'):
-				return 'ExtePlayer3'
+				return 'Exte3'
 			elif strtype.startswith('1:134:'):
 				return 'Alternative'
 			else:
 				return ''
 
 	def streamurl(self):
-		playref = NavigationInstance.instance.getCurrentlyPlayingServiceReference()		
+		playref = NavigationInstance.instance.getCurrentlyPlayingServiceReference()
 		if playref:
 			refstr = playref.toString()
 			if '%3a' in refstr:

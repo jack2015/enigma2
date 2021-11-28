@@ -1,11 +1,10 @@
 from time import localtime, time, strftime
 
-from enigma import eEPGCache, eListbox, eListboxPythonMultiContent, loadPNG, gFont, getDesktop, eRect, eSize, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_WRAP, BT_SCALE, BT_KEEP_ASPECT_RATIO, BT_ALIGN_CENTER
-from skin import parameters, parseFont
+from enigma import eEPGCache, eListboxPythonMultiContent, gFont, eRect, eSize, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_WRAP, BT_SCALE, BT_KEEP_ASPECT_RATIO, BT_ALIGN_CENTER
+from skin import parameters, parseFont, applySkinFactor
 
 from Components.config import config
 from Components.EpgListBase import EPGListBase
-from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend, MultiContentEntryPixmapAlphaTest
 import NavigationInstance
 
 # Various value are in minutes, while others are in seconds.
@@ -19,7 +18,7 @@ class EPGListSingle(EPGListBase):
 
 		self.epgConfig = epgConfig
 		self.eventFontName = "Regular"
-		self.eventFontSize = 28 if self.isFullHd else 20
+		self.eventFontSize = applySkinFactor(19)
 		self.l.setBuildFunc(self.buildEntry)
 
 	def applySkin(self, desktop, screen):
@@ -36,14 +35,7 @@ class EPGListSingle(EPGListBase):
 		return EPGListBase.applySkin(self, desktop, screen)
 
 	def setItemsPerPage(self):
-		if self.numberOfRows:
-			self.epgConfig.itemsperpage.default = self.numberOfRows
-		itemHeight = max(self.listHeight / self.epgConfig.itemsperpage.value, 20) if self.listHeight > 0 else 32
-		self.l.setItemHeight(itemHeight)
-		self.instance.resize(eSize(self.listWidth, self.listHeight / itemHeight * itemHeight))
-		self.listHeight = self.instance.size().height()
-		self.listWidth = self.instance.size().width()
-		self.itemHeight = itemHeight
+		EPGListBase.setItemsPerPage(self, 32)
 
 	def setFontsize(self):
 		self.l.setFont(0, gFont(self.eventFontName, self.eventFontSize + self.epgConfig.eventfs.value))
@@ -92,27 +84,19 @@ class EPGListSingle(EPGListBase):
 		]
 		eventW = r3.width()
 		if timerIcon:
-			clockSize = 26 if self.isFullHd else 21
+			clockSize = applySkinFactor(17)
 			eventW -= clockSize
-			res.append((eListboxPythonMultiContent.TYPE_PIXMAP_ALPHABLEND, r3.left()+r3.width()-clockSize, (r3.height()-clockSize)/2, clockSize, clockSize, timerIcon))
+			res.append((eListboxPythonMultiContent.TYPE_PIXMAP_ALPHABLEND, r3.left() + r3.width() - clockSize, (r3.height() - clockSize) / 2, clockSize, clockSize, timerIcon))
 			if autoTimerIcon:
 				eventW -= clockSize
-				res.append((eListboxPythonMultiContent.TYPE_PIXMAP_ALPHABLEND, r3.left()+r3.width()-clockSize*2, (r3.height()-clockSize)/2, clockSize, clockSize, autoTimerIcon))
+				res.append((eListboxPythonMultiContent.TYPE_PIXMAP_ALPHABLEND, r3.left() + r3.width() - clockSize * 2, (r3.height() - clockSize) / 2, clockSize, clockSize, autoTimerIcon))
 		res.append((eListboxPythonMultiContent.TYPE_TEXT, r3.left(), r3.top(), eventW, r3.height(), 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, eventName))
 		return res
 
-	def getSelectionPosition(self):
-		# Adjust absolute index to index in displayed view
-		index = self.l.getCurrentSelectionIndex() % self.epgConfig.itemsperpage.value
-		sely = self.instance.position().y() + self.itemHeight * index
-		if sely >= self.instance.position().y() + self.listHeight:
-			sely -= self.listHeight
-		return self.listWidth, sely
-
 	def fillSimilarList(self, refstr, eventId):
-  		# Search similar broadcastings.
-  		if eventId is None:
-  			return
+		# Search similar broadcastings.
+		if eventId is None:
+			return
 		self.list = self.epgcache.search(('RIBDN', 1024, eEPGCache.SIMILAR_BROADCASTINGS_SEARCH, refstr, eventId))
 		if self.list and len(self.list):
 			self.list.sort(key=lambda x: x[2])
@@ -123,7 +107,7 @@ class EPGListSingle(EPGListBase):
 	def fillEPG(self, service):
 		now = time()
 		epgTime = now - config.epg.histminutes.value * SECS_IN_MIN
-		test = ['RIBDT', (service.ref.toString(), 0, epgTime, -1)]
+		test = ['RIBDT', (service.toString(), 0, epgTime, -1)]
 		self.list = self.queryEPG(test)
 
 		odds = chr(0xc2) + chr(0x86)
@@ -167,6 +151,10 @@ class EPGListSingle(EPGListBase):
 			self.__sortList()
 			self.l.invalidate()
 			self.moveToEventId(eventId)
+
+	def getSelectedEventStartTime(self):
+		x = self.l.getCurrentSelection()
+		return x and x[2]
 
 	def getSelectedEventId(self):
 		x = self.l.getCurrentSelection()

@@ -1,7 +1,7 @@
 from time import localtime, time, strftime
 
-from enigma import eEPGCache, eListbox, eListboxPythonMultiContent, loadPNG, gFont, getDesktop, eRect, eSize, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_WRAP, BT_SCALE, BT_KEEP_ASPECT_RATIO, BT_ALIGN_CENTER
-from skin import parameters
+from enigma import eEPGCache, eListboxPythonMultiContent, gFont, eRect, eSize, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_WRAP, BT_SCALE, BT_KEEP_ASPECT_RATIO, BT_ALIGN_CENTER
+from skin import parameters, applySkinFactor
 
 from Components.EpgListBase import EPGListBase
 from Components.GUIComponent import GUIComponent
@@ -15,25 +15,19 @@ SECS_IN_MIN = 60
 
 
 class EPGListMulti(EPGListBase):
-	def __init__(self, session, selChangedCB=None):
+	def __init__(self, session, epgConfig, selChangedCB=None):
 		EPGListBase.__init__(self, session, selChangedCB)
 
+		self.epgConfig = epgConfig
 		self.eventFontName = "Regular"
-		self.eventFontSize = 28 if self.isFullHd else 20
+		self.eventFontSize = applySkinFactor(18)
 		self.l.setBuildFunc(self.buildEntry)
 
 	def getCurrentChangeCount(self):
 		return self.l.getCurrentSelection()[7] if self.l.getCurrentSelection() is not None else 0
 
 	def setItemsPerPage(self):
-		if self.numberOfRows:
-			config.epgselection.multi.itemsperpage.default = self.numberOfRows
-		itemHeight = max(self.listHeight / config.epgselection.multi.itemsperpage.value, 20) if self.listHeight > 0 else 32
-		self.l.setItemHeight(itemHeight)
-		self.instance.resize(eSize(self.listWidth, self.listHeight / itemHeight * itemHeight))
-		self.listHeight = self.instance.size().height()
-		self.listWidth = self.instance.size().width()
-		self.itemHeight = itemHeight
+		EPGListBase.setItemsPerPage(self, 32)
 
 	def setFontsize(self):
 		self.l.setFont(0, gFont(self.eventFontName, self.eventFontSize + config.epgselection.multi.eventfs.value))
@@ -100,7 +94,7 @@ class EPGListMulti(EPGListBase):
 			width = r5.width()
 			timer, matchType = self.session.nav.RecordTimer.isInTimer(service, beginTime, duration)
 			if timer:
-				clockSize = 25 if self.isFullHd else 21
+				clockSize = applySkinFactor(17)
 				width -= clockSize / 2 if matchType == 0 else clockSize
 				timerIcon, autoTimerIcon = self.getPixmapsForTimer(timer, matchType)
 				res.append((eListboxPythonMultiContent.TYPE_PIXMAP_ALPHABLEND, r5.left() + width, (r5.height() - clockSize) / 2, clockSize, clockSize, timerIcon))
@@ -110,14 +104,6 @@ class EPGListMulti(EPGListBase):
 				width -= 5
 			res.append((eListboxPythonMultiContent.TYPE_TEXT, r5.left(), r5.top(), width, r5.height(), 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, EventName))
 		return res
-
-	def getSelectionPosition(self):
-		# Adjust absolute indx to indx in displayed view
-		indx = self.l.getCurrentSelectionIndex() % config.epgselection.multi.itemsperpage.value
-		sely = self.instance.position().y() + self.itemHeight * indx
-		if sely >= self.instance.position().y() + self.listHeight:
-			sely -= self.listHeight
-		return self.listWidth, sely
 
 	def fillEPG(self, services, stime=None):
 		test = [(service.ref.toString(), 0, stime) for service in services]

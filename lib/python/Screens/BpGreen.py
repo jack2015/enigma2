@@ -15,10 +15,11 @@ from enigma import eDVBDB
 
 config.misc.fast_plugin_button = ConfigText(default="")
 
+
 class DeliteGreenPanel(Screen):
 	skin = """
-	<screen name="DeliteGreenPanel" position="center,center" size="1000,720" title="Black Hole Green Panel" flags="wfNoBorder">
-		<eLabel text="Black Hole Green Panel" position="80,30" size="800,38" font="Regular;34" halign="left" foregroundColor="#004c74" backgroundColor="transpBlack" transparent="1"/>
+	<screen name="DeliteGreenPanel" position="center,center" size="1000,720" title="BlackHole Green Panel" flags="wfNoBorder">
+		<eLabel text="BlackHole Green Panel" position="80,30" size="800,38" font="Regular;34" halign="left" foregroundColor="#004c74" backgroundColor="transpBlack" transparent="1"/>
 		<widget source="list" render="Listbox" position="80,105" zPosition="1" size="840,500" scrollbarMode="showOnDemand"  transparent="1">
 			<convert type="TemplatedMultiContent">
 				{"template": [
@@ -40,6 +41,7 @@ class DeliteGreenPanel(Screen):
 		<widget name="key_yellow" position="544,650" zPosition="2" size="140,40" font="Regular;24" halign="center" valign="center" backgroundColor="yellow" transparent="1" />
 		<widget name="key_blue" position="772,650" zPosition="2" size="140,40" font="Regular;24" halign="center" valign="center" backgroundColor="blue" transparent="1" />
 	</screen>"""
+
 	def __init__(self, session):
 		Screen.__init__(self, session)
 
@@ -69,7 +71,7 @@ class DeliteGreenPanel(Screen):
 			plugin(session=self.session)
 
 	def updateList(self):
-		self.list = [ ]
+		self.list = []
 		self.pluginlist = plugins.getPlugins(PluginDescriptor.WHERE_PLUGINMENU)
 		for plugin in self.pluginlist:
 			if plugin.icon is None:
@@ -91,7 +93,7 @@ class DeliteGreenPanel(Screen):
 	def keyGreen(self):
 		runplug = None
 		for plugin in self.list:
-			if  plugin[3].name == config.misc.fast_plugin_button.value:
+			if plugin[3].name == config.misc.fast_plugin_button.value:
 				runplug = plugin[3]
 				break
 
@@ -103,9 +105,10 @@ class DeliteGreenPanel(Screen):
 	def keyBlue(self):
 		self.session.open(DeliteScript)
 
+
 class DeliteSetupFp(Screen):
 	skin = """
-	<screen position="160,115" size="390,370" title="Black Hole Fast Plugin Setup">
+	<screen position="160,115" size="390,370" title="BlackHole Fast Plugin Setup">
 		<widget source="list" render="Listbox" position="10,10" size="370,300" scrollbarMode="showOnDemand" >
 			<convert type="StringList" />
 		</widget>
@@ -115,7 +118,7 @@ class DeliteSetupFp(Screen):
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		
+
 		self["key_red"] = Label(_("Set Favourite"))
 		self.list = []
 		self["list"] = List(self.list)
@@ -129,7 +132,7 @@ class DeliteSetupFp(Screen):
 		}, -1)
 
 	def updateList(self):
-		self.list = [ ]
+		self.list = []
 		self.pluginlist = plugins.getPlugins(PluginDescriptor.WHERE_PLUGINMENU)
 		for plugin in self.pluginlist:
 			if plugin.icon is None:
@@ -151,22 +154,23 @@ class DeliteSetupFp(Screen):
 			config.misc.fast_plugin_button.save()
 			configfile.save()
 
+
 class DeliteScript(Screen):
 	skin = """
-	<screen position="80,100" size="560,410" title="Black Hole Script Panel">
+	<screen position="80,100" size="560,410" title="BlackHole Script Panel">
 		<widget source="list" render="Listbox" position="10,10" size="540,300" scrollbarMode="showOnDemand" >
 			<convert type="StringList" />
 		</widget>
 		<widget name="statuslab" position="10,320" size="540,30" font="Regular;16" valign="center" noWrap="1" backgroundColor="#333f3f3f" foregroundColor="#FFC000" shadowOffset="-2,-2" shadowColor="black" />
-		<ePixmap pixmap="skin_default/buttons/red.png" position="210,360" size="140,40" alphatest="on" />
-		<widget name="key_red" position="210,360" zPosition="1" size="140,40" font="Regular;20" halign="center" valign="center" backgroundColor="#9f1313" transparent="1" />
+		<ePixmap pixmap="skin_default/buttons/green.png" position="210,360" size="140,40" alphatest="on" />
+		<widget name="key_green" position="210,360" zPosition="1" size="140,40" font="Regular;20" halign="center" valign="center" backgroundColor="#9f1313" transparent="1" />
 	</screen>"""
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
 
 		self["statuslab"] = Label("N/A")
-		self["key_red"] = Label(_("Execute"))
+		self["key_green"] = Label(_("Execute"))
 		self.mlist = []
 		self.populateSL()
 		self["list"] = List(self.mlist)
@@ -176,7 +180,7 @@ class DeliteScript(Screen):
 		{
 			"ok": self.myGo,
 			"back": self.close,
-			"red": self.myGo
+			"green": self.myGo
 		})
 		self.onLayoutFinish.append(self.refr_sel)
 
@@ -190,7 +194,7 @@ class DeliteScript(Screen):
 			if fil.find('.sh') != -1:
 				fil2 = fil[:-3]
 				desc = "N/A"
-				f = open("/usr/script/" + fil,'r')
+				f = open("/usr/script/" + fil, 'r')
 				for line in f.readlines():
 					if line.find('#DESCRIPTION=') != -1:
 						line = line.strip()
@@ -210,5 +214,5 @@ class DeliteScript(Screen):
 		if mysel:
 			mysel = mysel[0]
 			mysel2 = "/usr/script/" + mysel + ".sh"
-			mytitle = _("Black Hole E2 Script: ") + mysel
+			mytitle = _("BlackHole E2 Script: ") + mysel
 			self.session.open(Console, title=mytitle, cmdlist=[mysel2])

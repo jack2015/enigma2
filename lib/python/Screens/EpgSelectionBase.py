@@ -2,43 +2,73 @@ from time import time
 
 from enigma import ePoint, eServiceCenter, eServiceReference, eTimer
 
-from RecordTimer import AFTEREVENT, RecordTimerEntry, parseEvent
-from ServiceReference import ServiceReference
+from RecordTimer import AFTEREVENT
 from Components.ActionMap import ActionMap, HelpableActionMap, HelpableNumberActionMap
 from Components.Button import Button
 from Components.EpgBouquetList import EPGBouquetList
 from Components.Label import Label
 from Components.Sources.Event import Event
 from Components.Sources.ServiceEvent import ServiceEvent
-from Components.UsageConfig import preferredTimerPath
-from Components.config import ConfigClock, ConfigDateTime, config, configfile
-from Screens.ChoiceBox import ChoiceBox
+from Components.Sources.StaticText import StaticText
+from Components.config import ConfigClock, ConfigDateTime, config
+from Screens.ChoiceBox import PopupChoiceBox
 from Screens.EventView import EventViewEPGSelect
 from Screens.HelpMenu import HelpableScreen
 from Screens.MessageBox import MessageBox
-from Screens.PictureInPicture import PictureInPicture
 from Screens.Screen import Screen
 from Screens.TimeDateInput import TimeDateInput
-from Screens.TimerEdit import TimerSanityConflict
-from Screens.TimerEntry import InstantRecordTimerEntry, TimerEntry
+from Screens.TimerEntry import TimerEntry, addTimerFromEvent, addTimerFromEventSilent
 
 
-# PiPServiceRelation installed?
-try:
-	from Plugins.SystemPlugins.PiPServiceRelation.plugin import getRelationDict
-	plugin_PiPServiceRelation_installed = True
-except ImportError:
-	plugin_PiPServiceRelation_installed = False
+epgActions = [
+	# function name, button label, help text
+	("", _("Do nothing")),
+	("openIMDb", _("IMDb Search"), _("IMDB search for current event")),
+	("sortEPG", _("Sort"), _("Sort the EPG list")),
+	("addEditTimer", _("Add Timer"), _("Add/Remove timer for current event")),
+	("openTimerList", _("Show Timer List")),
+	("openEPGSearch", _("EPG Search"), _("Search for similar events")),
+	("addEditAutoTimer", _("Add AutoTimer"), _("Add/Edit an autotimer for current event")),
+	("openAutoTimerList", _("AutoTimer List"), _("Show autotimer list")),
+	("forward24Hours", _("+24 hours"), _("Go forward 24 hours")),
+	("back24Hours", _("-24 hours"), _("Go back 24 hours")),
+	("openEventView", _("Event Info"), _("Show detailed event info")),
+	("openSingleEPG", _("Single EPG"), _("Show Single EPG")),
+	("showMovies", _("Recordings"), _("Show recorded movies"))
+]
 
-def ignoreLongKeyPress(action):
-	def fn():
-		from Screens.InfoBar import InfoBar
-		if not InfoBar.instance.LongButtonPressed:
-			action()
-	return fn
+okActions = [
+	("zap", _("Zap")),
+	("zapExit", _("Zap + Exit")),
+	("openEventView", _("Event Info"), _("Show detailed event info"))
+]
 
-def getServiceRefStr(service):
-	return ":".join(service.ref.toString().split(":")[:11])
+recActions = [
+	("addEditTimerMenu", _("Timer Menu"), _("Add a record timer or an autotimer for current event")),
+	("addEditTimer", _("Add Timer"), _("Add and edit a record timer for current event")),
+	("addEditTimerSilent", _("Create Timer"), _("Add a record timer for current event")),
+	("addEditZapTimerSilent", _("Create Zap Timer"), _("Add a zap timer for current event")),
+	("addEditAutoTimer", _("Add AutoTimer"), _("Add an autotimer for current event"))
+]
+
+infoActions = [
+	("", _("Do nothing")),
+	("openEventView", _("Event Info"), _("Show detailed event info")),
+	("openSingleEPG", _("Single EPG"), _("Show Single EPG")),
+	("switchToSingleEPG", _("Switch to Single EPG")),
+	("switchToGridEPG", _("Switch to Grid EPG")),
+	("switchToMultiEPG", _("Switch to Multi EPG"))
+]
+
+channelUpActions = [
+	("forward24Hours", _("+24 hours"), _("Go forward 24 hours")),
+	("prevPage", _("Page up"))
+]
+
+channelDownActions = [
+	("back24Hours", _("-24 hours"), _("Go back 24 hours")),
+	("nextPage", _("Page down"))
+]
 
 
 class EPGSelectionBase(Screen, HelpableScreen):
@@ -55,15 +85,12 @@ class EPGSelectionBase(Screen, HelpableScreen):
 
 		self.epgConfig = epgConfig
 		self.bouquets = bouquets
-		self.originalPlayingServiceOrGroup = self.session.nav.getCurrentlyPlayingServiceOrGroup()
 		self.startBouquet = startBouquet
 		self.startRef = startRef
-		self.choiceBoxDialog = None
+		self.popupDialog = None
 		self.closeRecursive = False
 		self.eventviewDialog = None
 		self.eventviewWasShown = False
-		self.session.pipshown = False
-		self.pipServiceRelation = getRelationDict() if plugin_PiPServiceRelation_installed else {}
 		self["Service"] = ServiceEvent()
 		self["Event"] = Event()
 		self["lab1"] = Label(_("Please wait while gathering EPG data..."))
@@ -73,28 +100,32 @@ class EPGSelectionBase(Screen, HelpableScreen):
 		self["key_yellow"] = Button(_("EPG Search"))
 		self["key_blue"] = Button(_("Add AutoTimer"))
 
+		self["key_menu"] = StaticText(_("MENU"))
+		self["key_info"] = StaticText(_("INFO"))
+
 		helpDescription = _("EPG Commands")
-		self["dialogactions"] = HelpableActionMap(self, "WizardActions", {
-			"back": (self.closeChoiceBoxDialog, _("Close dialog box")),
-		}, prio=-1, description=helpDescription)
-		self["dialogactions"].setEnabled(False)
+
 		self["okactions"] = HelpableActionMap(self, "OkCancelActions", {
 			"cancel": (self.closeScreen, _("Exit EPG")),
-			"OK": (ignoreLongKeyPress(self.OK), _("Zap to channel/service")),
-			"OKLong": (self.OKLong, _("Zap to channel/service and close"))
+			"OK": (self.helpKeyAction("ok")),
+			"OKLong": (self.helpKeyAction("oklong"))
 		}, prio=-1, description=helpDescription)
+
 		self["colouractions"] = HelpableActionMap(self, "ColorActions", {
-			"red": (ignoreLongKeyPress(self.openIMDb), _("IMDB search for current event")),
-			"redlong": (self.sortEPG, _("Sort the EPG list")),
-			"green": (ignoreLongKeyPress(self.addEditTimer), _("Add/Remove timer for current event")),
-			"greenlong": (self.openTimerList, _("Show timer list")),
-			"yellow": (ignoreLongKeyPress(self.openEPGSearch), _("Search for similar events")),
-			"blue": (ignoreLongKeyPress(self.addAutoTimer), _("Add an autotimer for current event")),
-			"bluelong": (self.openAutoTimerList, _("Show autotimer list"))
-		}, prio=-1, description=helpDescription)
+			"red": self.helpKeyAction("red"),
+			"redlong": self.helpKeyAction("redlong"),
+			"green": self.helpKeyAction("green"),
+			"greenlong": self.helpKeyAction("greenlong"),
+			"yellow": self.helpKeyAction("yellow"),
+			"yellowlong": self.helpKeyAction("yellowlong"),
+			"blue": self.helpKeyAction("blue"),
+			"bluelong": self.helpKeyAction("bluelong")
+		}, prio=-1, description="EPG Commands")
+		self._updateButtonText()
+
 		self["recordingactions"] = HelpableActionMap(self, "InfobarInstantRecord", {
-			"ShortRecord": (self.recordTimerQuestion, _("Add a record timer for current event")),
-			"LongRecord": (self.doZapTimer, _("Add a zap timer for current event"))
+			"ShortRecord": self.helpKeyAction("rec"),
+			"LongRecord": self.helpKeyAction("reclong")
 		}, prio=-1, description=helpDescription)
 		self["epgactions"] = HelpableActionMap(self, "EPGSelectActions", {}, -1)
 
@@ -135,27 +166,46 @@ class EPGSelectionBase(Screen, HelpableScreen):
 	def sortEPG(self):
 		self.closeEventViewDialog()
 
-	def addEditTimer(self):
-		self.closeEventViewDialog()
-		self.recordTimerQuestion(True)
-
 	def enterDateTime(self):
 		if not EPGSelectionBase.lastEnteredTime:
 			# The stored date and time is shared by all EPG types.
 			EPGSelectionBase.lastEnteredTime = ConfigClock(default=time())
 			EPGSelectionBase.lastEnteredDate = ConfigDateTime(default=time(), formatstring=config.usage.date.full.value, increment=86400)
-		self.session.openWithCallback(self.onDateTimeInputClosed, TimeDateInput, EPGSelectionBase.lastEnteredTime, EPGSelectionBase.lastEnteredDate)
+		dti = self.session.openWithCallback(self.onDateTimeInputClosed, TimeDateInput, EPGSelectionBase.lastEnteredTime, EPGSelectionBase.lastEnteredDate)
+		dti.setTitle(_("Advance EPG to the following date and time"))
+
+	def showMovies(self):
+		from Screens.InfoBar import InfoBar
+		InfoBar.instance.showMovies()
 
 	def openSingleEPG(self):
 		from Screens.EpgSelectionChannel import EPGSelectionChannel
 		event, service = self["list"].getCurrent()[:2]
-		if service is not None and service.ref is not None:
-			self.session.open(EPGSelectionChannel, service.ref, time() if event is None else event.getBeginTime())
+		if service is not None:
+			self.session.open(EPGSelectionChannel, service, time() if event is None else event.getBeginTime())
+
+	def switchToSingleEPG(self):
+		from Screens.EpgSelectionSingle import EPGSelectionSingle
+		event, service = self["list"].getCurrent()[:2]
+		if service is not None:
+			self.close("open", EPGSelectionSingle, self.getCurrentBouquet(), service, self.bouquets, time() if event is None else event.getBeginTime())
+
+	def switchToGridEPG(self):
+		from Screens.EpgSelectionGrid import EPGSelectionGrid
+		event, service = self["list"].getCurrent()[:2]
+		if service is not None:
+			self.close("open", EPGSelectionGrid, self.getCurrentBouquet(), service, self.bouquets, time() if event is None else event.getBeginTime())
+
+	def switchToMultiEPG(self):
+		from Screens.EpgSelectionMulti import EPGSelectionMulti
+		event, service = self["list"].getCurrent()[:2]
+		if service is not None:
+			self.close("open", EPGSelectionMulti, self.getCurrentBouquet(), service, self.bouquets, time() if event is None else event.getBeginTime())
 
 	def openIMDb(self):
 		self.closeEventViewDialog()
 		try:
-			from Plugins.Extensions.IMDb.plugin import IMDB, IMDBEPGSelection
+			from Plugins.Extensions.IMDb.plugin import IMDB
 			try:
 				event = self["list"].getCurrent()[0]
 				if event is None:
@@ -183,6 +233,17 @@ class EPGSelectionBase(Screen, HelpableScreen):
 		except ImportError:
 			self.session.open(MessageBox, self.noEPGSearch, type=MessageBox.TYPE_INFO, timeout=10)
 
+	def addEditAutoTimer(self):
+		self.closeEventViewDialog()
+		event, service = self["list"].getCurrent()[:2]
+		if event is None:
+			return
+		timer = self.session.nav.RecordTimer.getTimerForEvent(service, event)
+		if timer is not None and timer.autoTimerId:
+			self.editAutoTimer(timer)
+		else:
+			self.addAutoTimer()
+
 	def addAutoTimer(self):
 		self.closeEventViewDialog()
 		try:
@@ -195,12 +256,17 @@ class EPGSelectionBase(Screen, HelpableScreen):
 		except ImportError:
 			self.session.open(MessageBox, self.noAutotimer, type=MessageBox.TYPE_INFO, timeout=10)
 
-	def addAutoTimerSilent(self):
+	def editAutoTimer(self, timer):
+		try:
+			from Plugins.Extensions.AutoTimer.AutoTimerEditor import editAutotimerFromTimer
+			editAutotimerFromTimer(self.session, timer)
+			self.refreshTimer.start(3000)
+		except ImportError:
+			self.session.open(MessageBox, self.noAutotimer, type=MessageBox.TYPE_INFO, timeout=10)
+
+	def addAutoTimerSilent(self, event, service):
 		try:
 			from Plugins.Extensions.AutoTimer.AutoTimerEditor import addAutotimerFromEventSilent
-			event, service = self["list"].getCurrent()[:2]
-			if event is None:
-				return
 			addAutotimerFromEventSilent(self.session, evt=event, service=service)
 			self.refreshTimer.start(3000)
 		except ImportError:
@@ -249,140 +315,97 @@ class EPGSelectionBase(Screen, HelpableScreen):
 			autopoller = None
 			autotimer = None
 
-	def timerAdd(self):
-		self.recordTimerQuestion(True)
-
 	def editTimer(self, timer):
 		def callback(ret):
 			self.refreshList()
 		self.session.openWithCallback(callback, TimerEntry, timer)
 
 	def removeTimer(self, timer):
-		self.closeChoiceBoxDialog()
 		timer.afterEvent = AFTEREVENT.NONE
 		self.session.nav.RecordTimer.removeEntry(timer)
-		self["key_green"].setText(_("Add Timer"))
+		self.setActionButtonText("addEditTimer", _("Add Timer"))
 		self.refreshList()
 
 	def disableTimer(self, timer):
-		self.closeChoiceBoxDialog()
 		timer.disable()
 		self.session.nav.RecordTimer.timeChanged(timer)
-		self["key_green"].setText(_("Add Timer"))
+		self.setActionButtonText("addEditTimer", _("Add Timer"))
 		self.refreshList()
 
-	def recordTimerQuestion(self, manual=False):
+	def refreshTimerActionButton(self, timer):
+		self.setActionButtonText("addEditTimer", _("Change Timer") if timer is not None else _("Add Timer"))
+		self.refreshList()
+
+	def addEditTimerMenu(self):
+		event, service = self.__timerEditPopupMenu()
+		if event is None or event.getBeginTime() + event.getDuration() <= time():
+			return
+
+		self.closeEventViewDialog()
+		self.__popupMenu(
+				"%s?" % event.getEventName(),
+				[[_("Add Timer"), addTimerFromEventSilent, self.session, self.refreshTimerActionButton, event, service],
+				[_("Add AutoTimer"), self.addAutoTimerSilent, event, service]])
+
+	def addEditTimer(self):
+		self.closeEventViewDialog()
+		event, service = self.__timerEditPopupMenu()
+		addTimerFromEvent(self.session, self.refreshTimerActionButton, event, service)
+
+	def addEditTimerSilent(self):
+		self.closeEventViewDialog()
+		event, service = self.__timerEditPopupMenu()
+		addTimerFromEventSilent(self.session, self.refreshTimerActionButton, event, service)
+
+	def addEditZapTimerSilent(self):
+		self.closeEventViewDialog()
+		event, service = self.__timerEditPopupMenu()
+		addTimerFromEventSilent(self.session, self.refreshTimerActionButton, event, service, 1)
+
+	def __timerEditPopupMenu(self):
 		event, service = self["list"].getCurrent()[:2]
 		if event is None:
-			return
-		menu = None
+			return None, None
 		timer = self.session.nav.RecordTimer.getTimerForEvent(service, event)
-		if timer is not None:
-			menu = [
-				(_("Delete Timer"), "CALLFUNC", self.removeChoiceBoxCB, lambda ret: self.removeTimer(timer)),
-				(_("Edit Timer"), "CALLFUNC", self.removeChoiceBoxCB, lambda ret: self.editTimer(timer)),
-				(_("Disable Timer"), "CALLFUNC", self.removeChoiceBoxCB, lambda ret: self.disableTimer(timer))
-			]
-			title = _("Select action for timer %s:") % event.getEventName()
-		elif event.getBeginTime() + event.getDuration() > time():
-			if not manual:
-				menu = [
-					(_("Add Timer"), "CALLFUNC", self.choiceBoxCB, self.doRecordTimer),
-					(_("Add AutoTimer"), "CALLFUNC", self.choiceBoxCB, self.addAutoTimerSilent)
-				]
-				title = "%s?" % event.getEventName()
-			else:
-				newEntry = RecordTimerEntry(service, checkOldTimers=True, dirname=preferredTimerPath(), *parseEvent(event, service=service))
-				self.session.openWithCallback(self.finishedAdd, TimerEntry, newEntry)
-		if menu:
-			self.choiceBoxDialog = self.session.instantiateDialog(ChoiceBox, title=title, list=menu, keys=["green", "blue"], skin_name="RecordTimerQuestion")
-			posy = self["list"].getSelectionPosition()
-			self.choiceBoxDialog.instance.move(ePoint(posy[0] - self.choiceBoxDialog.instance.size().width(), self.instance.position().y() + posy[1]))
-			self.showChoiceBoxDialog()
+		if timer is None:
+			return event, service
 
-	def removeChoiceBoxCB(self, choice):
-		self.closeChoiceBoxDialog()
-		if choice:
-			choice(self)
+		self.__popupMenu(
+			_("Select action for timer %s:") % event.getEventName(),
+			[[_("Delete Timer"), self.removeTimer, timer],
+			[_("Edit Timer"), self.editTimer, timer],
+			[_("Disable Timer"), self.disableTimer, timer]])
+		return None, None
 
-	def choiceBoxCB(self, choice):
-		self.closeChoiceBoxDialog()
-		if choice:
-			choice()
+	def __popupMenu(self, title, menu):
+		self.popupDialog = self.session.instantiateDialog(PopupChoiceBox, title=title, list=menu, keys=["green", "blue"], skin_name="RecordTimerQuestion", closeCB=self.closePopupDialog)
+		pos = self["list"].getSelectionPosition()
+		self.popupDialog.instance.move(ePoint(pos[0] - self.popupDialog.instance.size().width(), self.instance.position().y() + pos[1]))
+		self.showPopupDialog()
 
-	def showChoiceBoxDialog(self):
+	def showPopupDialog(self):
 		self["okactions"].setEnabled(False)
 		if "epgcursoractions" in self:
 			self["epgcursoractions"].setEnabled(False)
 		self["colouractions"].setEnabled(False)
 		self["recordingactions"].setEnabled(False)
 		self["epgactions"].setEnabled(False)
-		self["dialogactions"].setEnabled(True)
-		self.choiceBoxDialog["actions"].execBegin()
-		self.choiceBoxDialog.show()
-		if "input_actions" in self:
-			self["input_actions"].setEnabled(False)
+		if "numberactions" in self:
+			self["numberactions"].setEnabled(False)
+		self["helpActions"].setEnabled(False)
+		self.popupDialog.show()
 
-	def closeChoiceBoxDialog(self):
-		self["dialogactions"].setEnabled(False)
-		if self.choiceBoxDialog:
-			self.choiceBoxDialog["actions"].execEnd()
-			self.session.deleteDialog(self.choiceBoxDialog)
+	def closePopupDialog(self):
+		self.popupDialog = None
 		self["okactions"].setEnabled(True)
 		if "epgcursoractions" in self:
 			self["epgcursoractions"].setEnabled(True)
 		self["colouractions"].setEnabled(True)
 		self["recordingactions"].setEnabled(True)
 		self["epgactions"].setEnabled(True)
-		if "input_actions" in self:
-			self["input_actions"].setEnabled(True)
-
-	def doRecordTimer(self):
-		self.doInstantTimer(0)
-
-	def doZapTimer(self):
-		self.doInstantTimer(1)
-
-	def doInstantTimer(self, zap):
-		event, service = self["list"].getCurrent()[:2]
-		if event is None or event.getBeginTime() + event.getDuration() < time():
-			return
-		newEntry = RecordTimerEntry(service, checkOldTimers=True, *parseEvent(event, service=service))
-		self.instantRecordDialog = self.session.instantiateDialog(InstantRecordTimerEntry, newEntry, zap)
-		retval = [True, self.instantRecordDialog.retval()]
-		self.session.deleteDialogWithCallback(self.finishedAdd, self.instantRecordDialog, retval)
-
-	def finishedAdd(self, answer):
-		if answer[0]:
-			entry = answer[1]
-			simulTimerList = self.session.nav.RecordTimer.record(entry)
-			if simulTimerList is not None:
-				for x in simulTimerList:
-					if x.setAutoincreaseEnd(entry):
-						self.session.nav.RecordTimer.timeChanged(x)
-				simulTimerList = self.session.nav.RecordTimer.record(entry)
-				if simulTimerList is not None:
-					if not entry.repeated and not config.recording.margin_before.value and not config.recording.margin_after.value and len(simulTimerList) > 1:
-						changeTime = False
-						conflictBegin = simulTimerList[1].begin
-						conflictEnd = simulTimerList[1].end
-						if conflictBegin == entry.end:
-							entry.end -= 30
-							changeTime = True
-						elif entry.begin == conflictEnd:
-							entry.begin += 30
-							changeTime = True
-						if changeTime:
-							simulTimerList = self.session.nav.RecordTimer.record(entry)
-					if simulTimerList is not None:
-						self.session.openWithCallback(self.finishSanityCorrection, TimerSanityConflict, simulTimerList)
-			self["key_green"].setText(_("Change Timer"))
-		else:
-			self["key_green"].setText(_("Add Timer"))
-		self.refreshList()
-
-	def finishSanityCorrection(self, answer):
-		self.finishedAdd(answer)
+		if "numberactions" in self:
+			self["numberactions"].setEnabled(True)
+		self["helpActions"].setEnabled(True)
 
 	def onSelectionChanged(self):
 		event, service = self["list"].getCurrent()[:2]
@@ -390,15 +413,16 @@ class EPGSelectionBase(Screen, HelpableScreen):
 		if service is None:
 			self["Service"].newService(None)
 		else:
-			self["Service"].newService(service.ref)
+			self["Service"].newService(service)
 		if service is None or service.getServiceName() == "":
-			self["key_green"].setText("")
+			self.setActionButtonText("addEditTimer", "")
 			return
 		if event is None or event.getBeginTime() + event.getDuration() < time():
-			self["key_green"].setText("")
+			self.setActionButtonText("addEditTimer", "")
 			return
-		self["key_green"].setText(_("Change Timer") if self.session.nav.RecordTimer.getTimerForEvent(service, event) 
-			else _("Add Timer"))
+		timer = self.session.nav.RecordTimer.getTimerForEvent(service, event)
+		self.setActionButtonText("addEditTimer", _("Change Timer") if timer is not None else _("Add Timer"))
+		self.setActionButtonText("addEditAutoTimer", _("Edit AutoTimer") if timer is not None and timer.autoTimerId else _("Add AutoTimer"))
 
 	def closeEventViewDialog(self):
 		if self.eventviewDialog:
@@ -409,170 +433,142 @@ class EPGSelectionBase(Screen, HelpableScreen):
 
 class EPGServiceZap:
 	def __init__(self, zapFunc):
+		self.__originalPlayingService = self.session.nav.getCurrentlyPlayingServiceOrGroup() or eServiceReference()
 		self.prevch = None
 		self.currch = None
 		self.zapFunc = zapFunc
 
-	def OK(self):
-		if self.epgConfig.btn_ok.value == "zap":
-			self.zap()
-		else:
-			self.zapExit()
-
-	def OKLong(self):
-		if self.epgConfig.btn_oklong.value == "zap":
-			self.zap()
-		else:
-			self.zapExit()
-
 	def zapExit(self):
+		selectedService = self["list"].getCurrent()[1]
+		from Screens.InfoBar import MoviePlayer
+		MoviePlayer.ensureClosed(selectedService)
 		self.zapSelectedService()
 		self.closeEventViewDialog()
-		self.close("close")
+		self.close()
 
 	def zap(self):
-		if self.session.nav.getCurrentlyPlayingServiceOrGroup() and "0:0:0:0:0:0:0:0:0" in self.session.nav.getCurrentlyPlayingServiceOrGroup().toString():
+		currentService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+		if currentService and currentService.isPlayback():
+			# in movie playback, so store the resume point before zapping
 			from Screens.InfoBarGenerics import setResumePoint
 			setResumePoint(self.session)
 		self.zapSelectedService(True)
 		self.refreshTimer.start(1)
 		if not self.currch or self.currch == self.prevch:
+			# Zapping the same service for a second time, record it with the zap history and exit
+			from Screens.InfoBar import MoviePlayer
+			MoviePlayer.ensureClosed(currentService)
 			self.zapFunc(None, False)
 			self.closeEventViewDialog()
-			self.close("close")
+			self.close()
 
 	def closeScreen(self):
-		closeParam = True
-
 		# When exiting, restore the previous service/playback if a channel has been previewed.
-		if self.originalPlayingServiceOrGroup and self.session.nav.getCurrentlyPlayingServiceOrGroup() and self.session.nav.getCurrentlyPlayingServiceOrGroup().toString() != self.originalPlayingServiceOrGroup.toString():
+		currentService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+		if currentService and currentService.toString() != self.__originalPlayingService.toString():
+			# service has changed from the original
 			if self.epgConfig.preview_mode.value:
-				if "0:0:0:0:0:0:0:0:0" in self.originalPlayingServiceOrGroup.toString():
-  					# Restart movie playback, MoviePlayer screen is still active.
-  					from Screens.InfoBar import MoviePlayer
+				# In preview mode, the original service or movie playback is restored
+				if self.__originalPlayingService.isPlayback():
+					# Restart movie playback at the resume point stored earlier
+					from Screens.InfoBar import MoviePlayer
 					if MoviePlayer.instance:
 						MoviePlayer.instance.forceNextResume()
-				self.session.nav.playService(self.originalPlayingServiceOrGroup)
+				self.session.nav.playService(self.__originalPlayingService)
 			else:
-				if "0:0:0:0:0:0:0:0:0" in self.originalPlayingServiceOrGroup.toString():
-					# Previously we were in playback, so we'll need to close the movie player
-					closeParam = 'closemovieplayer'
-				# Not preview mode and service has been changed before exiting, record it with the zap history
+				# In non-preview mode, stick with the now playing service; this means closing the movieplayer
+				# if it's open, and setting the infobar's lastservice
+				from Screens.InfoBar import MoviePlayer
+				MoviePlayer.ensureClosed(currentService)
 				self.zapFunc(None, False)
-		if self.session.pipshown:
-			self.session.pipshown = False
-			del self.session.pip
 		self.closeEventViewDialog()
-		self.close(closeParam)
+		self.close()
 
 	def zapSelectedService(self, prev=False):
-		currservice = self.session.nav.getCurrentlyPlayingServiceReference() and str(self.session.nav.getCurrentlyPlayingServiceReference().toString()) or None
-		if self.session.pipshown:
-			self.prevch = self.session.pip.getCurrentService() and str(self.session.pip.getCurrentService().toString()) or None
-		else:
-			self.prevch = self.session.nav.getCurrentlyPlayingServiceReference() and str(self.session.nav.getCurrentlyPlayingServiceReference().toString()) or None
-		service = self["list"].getCurrent()[1]
-		if service is not None:
-			if self.epgConfig.preview_mode.value == "2":
-				if not prev:
-					if self.session.pipshown:
-						self.session.pipshown = False
-						del self.session.pip
-					self.zapFunc(service.ref, bouquet=self.getCurrentBouquet(), preview=False)
-					return
-				if not self.session.pipshown:
-					self.session.pip = self.session.instantiateDialog(PictureInPicture)
-					self.session.pip.show()
-					self.session.pipshown = True
-				pipPluginService = self.pipServiceRelation.get(str(service.ref), None)
-				if pipPluginService is not None:
-					serviceRef = eServiceReference(pipPluginService)
-				else:
-					serviceRef = service.ref
-				if self.currch == serviceRef.toString():
-					if self.session.pipshown:
-						self.session.pipshown = False
-						del self.session.pip
-					self.zapFunc(service.ref, bouquet=self.getCurrentBouquet(), preview=False)
-					return
-				if self.prevch != serviceRef.toString() and currservice != serviceRef.toString():
-					self.session.pip.playService(serviceRef)
-					self.currch = self.session.pip.getCurrentService() and str(self.session.pip.getCurrentService().toString())
-			else:
-				self.zapFunc(service.ref, bouquet=self.getCurrentBouquet(), preview=prev)
-				self.currch = self.session.nav.getCurrentlyPlayingServiceReference() and str(self.session.nav.getCurrentlyPlayingServiceReference().toString())
+		self.prevch = self.session.nav.getCurrentlyPlayingServiceReference() and self.session.nav.getCurrentlyPlayingServiceReference().toString() or None
+		selectedService = self["list"].getCurrent()[1]
+		if selectedService is not None:
+			self.zapFunc(selectedService, bouquet=self.getCurrentBouquet(), preview=prev)
+			self.currch = self.session.nav.getCurrentlyPlayingServiceReference() and self.session.nav.getCurrentlyPlayingServiceReference().toString()
+
+
+class EPGServiceNumberSelectionPopup(Screen):
+	def __init__(self, session, getServiceByNumber, callback, number):
+		Screen.__init__(self, session)
+		self.skinName = "EPGServiceNumberSelection"
+		self.getServiceByNumber = getServiceByNumber
+		self.callback = callback
+
+		helpDescription = _("EPG Commands")
+		helpMsg = _("Enter a number to jump to a service/channel")
+		self["actions"] = HelpableNumberActionMap(self, "NumberActions",
+			dict([(str(i), (self.keyNumber, helpMsg)) for i in range(0, 10)]),
+			prio=-1, description=helpDescription)
+		self["cancelaction"] = HelpableActionMap(self, "OkCancelActions", {
+			"cancel": (self.__cancel, _("Exit channel selection")),
+			"OK": (self.__OK, _("Select EPG channel"))
+		}, prio=-1, description=helpDescription)
+
+		self["number"] = Label()
+		self["service"] = ServiceEvent()
+		self["service"].newService(None)
+
+		self.timer = eTimer()
+		self.timer.callback.append(self.__OK)
+		self.number = ""
+		self.keyNumber(number)
+
+	def show(self):
+		self["actions"].execBegin()
+		self["cancelaction"].execBegin()
+		Screen.show(self)
+
+	def hide(self):
+		self["actions"].execEnd()
+		self["cancelaction"].execEnd()
+		Screen.hide(self)
+
+	def keyNumber(self, number):
+		if config.misc.zapkey_delay.value > 0:
+			self.timer.start(1000 * config.misc.zapkey_delay.value, True)
+		self.number += str(number)
+		service, bouquet = self.getServiceByNumber(int(self.number))
+		self["number"].setText(self.number)
+		self["service"].newService(service)
+
+		if len(self.number) >= 4:
+			self.__OK()
+
+	def __OK(self):
+		self.callback(int(self.number))
+
+	def __cancel(self):
+		self.callback(None)
 
 
 class EPGServiceNumberSelection:
 	def __init__(self):
-		self.numberZapTimer = eTimer()
-		self.numberZapTimer.callback.append(self.__OK)
-		self.numberZapField = None
-
-		self["numberzapokactions"] = HelpableActionMap(self, "OkCancelActions", {
-			"cancel": (self.__cancel, _("Close number zap.")),
-			"OK": (self.__OK, _("Change to service")),
-		}, prio=-1, description=_("Service/Channel number zap commands"))
-		self["numberzapokactions"].setEnabled(False)
 		helpMsg = _("Enter a number to jump to a service/channel")
-		self["input_actions"] = HelpableNumberActionMap(self, "NumberActions", 
-			dict([(str(i), (self.keyNumberGlobal, helpMsg)) for i in range(0,9)]),
+		self["numberactions"] = HelpableNumberActionMap(self, "NumberActions",
+			dict([(str(i), (self.keyNumberGlobal, helpMsg)) for i in range(0, 10)]),
 			prio=-1, description=_("Service/Channel number zap commands"))
 
-		self["zapbackground"] = Label()
-		self["zapbackground"].hide()
-		self["zapnumber"] = Label()
-		self["zapnumber"].hide()
-		self["zapservice"] = ServiceEvent()
-		self["zapservice"].newService(None)
-		self["number"] = Label()
-		self["number"].hide()
-
 	def keyNumberGlobal(self, number):
-		self["epgcursoractions"].setEnabled(False)
-		self["okactions"].setEnabled(False)
-		self["numberzapokactions"].setEnabled(True)
-		if config.misc.zapkey_delay.value > 0:
-			self.numberZapTimer.start(1000*config.misc.zapkey_delay.value, True)
-		if self.numberZapField is None:
-			self.numberZapField = str(number)
-		else:
-			self.numberZapField += str(number)
-		from Screens.InfoBar import InfoBar
-		service, bouquet = InfoBar.instance.searchNumber(int(self.numberZapField))
-		self["zapbackground"].show()
-		self["zapnumber"].setText(self.numberZapField)
-		self["zapnumber"].show()
-		self["zapservice"].newService(service)
-		if self["number"].skinAttributes:
-		 	serviceName = ServiceReference(service).getServiceName()
-		 	self["number"].setText("%s\n%s" % (serviceName, self.numberZapField))
-			self["number"].show()
+		def closed(number):
+			if self.popupDialog:
+				self.popupDialog.doClose()
+			self.closePopupDialog()
+			if number is not None:
+				service, bouquet = self.getServiceByNumber(number)
+				if service is not None:
+					self.startRef = service
+					self.startBouquet = bouquet
+					self.setBouquet(bouquet)
+					self.bouquetChanged()
+					self.moveToService(service)
 
-		if len(self.numberZapField) >= 4:
-			self.__OK()
-
-	def __OK(self):
-		if self.numberZapField is not None:
-			# It's preferable to reuse the InfoBar searchNumber over copying the implementation
-			from Screens.InfoBar import InfoBar
-			service, bouquet = InfoBar.instance.searchNumber(int(self.numberZapField))
-			if service is not None:
-				self.startRef = service
-				self.startBouquet = bouquet
-				self.onCreate()
-		self.__cancel()
-
-	def __cancel(self):
-		self.numberZapField = None
-		self.numberZapTimer.stop()
-		self["epgcursoractions"].setEnabled(True)
-		self["okactions"].setEnabled(True)
-		self["numberzapokactions"].setEnabled(False)
-		self["zapbackground"].hide()
-		self["zapnumber"].hide()
-		self["zapservice"].newService(None)
-		self["number"].hide()
+		self.popupDialog = self.session.instantiateDialog(EPGServiceNumberSelectionPopup, self.getServiceByNumber, closed, number)
+		self.showPopupDialog()
 
 
 class EPGBouquetSelection:
@@ -606,7 +602,7 @@ class EPGBouquetSelection:
 		if self.epgConfig.browse_mode.value == "lastepgservice":
 			if EPGBouquetSelection.lastPlaying and self.startRef and EPGBouquetSelection.lastBouquet and EPGBouquetSelection.lastPlaying == self.startRef:
 				self.startBouquet = EPGBouquetSelection.lastBouquet
-				self.startRef = EPGBouquetSelection.lastService and EPGBouquetSelection.lastService.ref
+				self.startRef = EPGBouquetSelection.lastService and EPGBouquetSelection.lastService
 			EPGBouquetSelection.lastPlaying = self.session.nav.getCurrentlyPlayingServiceOrGroup()
 
 	def __onClose(self):
@@ -620,23 +616,13 @@ class EPGBouquetSelection:
 		if servicelist:
 			# Use getContent() instead of getNext() so that the list
 			# is sorted according to the "ORDER BY" mechanism.
-			return [ServiceReference(service) for service in servicelist.getContent("R", True) if not (service.flags & (eServiceReference.isDirectory | eServiceReference.isMarker))]
+			return [service for service in servicelist.getContent("R", True) if not (service.flags & (eServiceReference.isDirectory | eServiceReference.isMarker))]
 		return []
 
 	def _populateBouquetList(self):
 		self["bouquetlist"].recalcEntrySize()
 		self["bouquetlist"].fillBouquetList(self.bouquets)
-
-		self.selectedBouquetIndex = 0
-		if self.startBouquet is not None:
-			index = 0
-			for bouquet in self.bouquets:
-				if bouquet[1] == self.startBouquet:
-					self.selectedBouquetIndex = index
-					break
-				index += 1
-		self["bouquetlist"].setCurrentIndex(self.selectedBouquetIndex)
-		self.services = self.getBouquetServices(self.startBouquet)
+		self.setBouquet(self.startBouquet)
 
 	def toggleBouquetList(self):
 		# Do nothing if the skin doesn't contain a bouquetlist
@@ -648,8 +634,9 @@ class EPGBouquetSelection:
 			self.__cancel()
 
 	def __OK(self):
-		self.setBouquetIndex(self["bouquetlist"].instance.getCurrentIndex())
 		self.bouquetListHide()
+		self.setBouquetIndex(self["bouquetlist"].instance.getCurrentIndex())
+		self.bouquetChanged()
 
 	def __cancel(self):
 		self.bouquetListHide()
@@ -692,15 +679,42 @@ class EPGBouquetSelection:
 
 	def nextBouquet(self):
 		self.setBouquetIndex(self.selectedBouquetIndex + 1)
+		self.bouquetChanged()
 
 	def prevBouquet(self):
 		self.setBouquetIndex(self.selectedBouquetIndex - 1)
+		self.bouquetChanged()
 
 	def setBouquetIndex(self, index):
 		self.selectedBouquetIndex = index % len(self.bouquets)
 		self.services = self.getBouquetServices(self.getCurrentBouquet())
 		self.selectedServiceIndex = 0 if len(self.services) > 0 else -1
-		self.bouquetChanged()
+
+	def setBouquet(self, bouquetRef):
+		self.selectedBouquetIndex = 0
+		if bouquetRef is not None:
+			index = 0
+			for bouquet in self.bouquets:
+				if bouquet[1] == bouquetRef:
+					self.selectedBouquetIndex = index
+					break
+				index += 1
+		self["bouquetlist"].setCurrentIndex(self.selectedBouquetIndex)
+		self.services = self.getBouquetServices(bouquetRef)
+		self.selectedServiceIndex = 0 if len(self.services) > 0 else -1
+
+	def getServiceByNumber(self, number):
+		if config.usage.alternative_number_mode.value:
+			for service in self.services:
+				if service.getChannelNum() == number:
+					return service, self.getCurrentBouquet()
+		else:
+			for bouquet in self.bouquets:
+				services = self.getBouquetServices(bouquet[1])
+				for service in services:
+					if service.getChannelNum() == number:
+						return service, bouquet[1]
+		return None, None
 
 
 class EPGServiceBrowse(EPGBouquetSelection):
@@ -712,18 +726,21 @@ class EPGServiceBrowse(EPGBouquetSelection):
 		EPGBouquetSelection._populateBouquetList(self)
 		if len(self.services) == 0:
 			return
-		if self.startRef is None:
+		self.setCurrentService(self.startRef)
+
+	def setCurrentService(self, serviceRef):
+		if serviceRef is None:
 			self.selectedServiceIndex = 0
 		else:
 			index = 0
 			for service in self.services:
-				if service.ref == self.startRef:
+				if service == serviceRef:
 					self.selectedServiceIndex = index
 					break
 				index += 1
 
 	def getCurrentService(self):
-		return self.services[self.selectedServiceIndex] if self.selectedServiceIndex >= 0 else ServiceReference("0:0:0:0:0:0:0:0:0")
+		return self.services[self.selectedServiceIndex] if self.selectedServiceIndex >= 0 else eServiceReference()
 
 	def nextService(self):
 		self.selectedServiceIndex += 1
@@ -742,3 +759,33 @@ class EPGServiceBrowse(EPGBouquetSelection):
 				self.services = self.getBouquetServices(self.getCurrentBouquet())
 			self.selectedServiceIndex = len(self.services) - 1 if len(self.services) > 0 else -1
 		self.serviceChanged()
+
+
+class EPGStandardButtons:
+	def setActionButtonText(self, actionName, buttonText):
+		# only need to cater for green button
+		if actionName == "addEditTimer":
+			self["key_green"].setText(buttonText)
+		elif actionName == "addEditAutoTimer":
+			self["key_blue"].setText(buttonText)
+
+	# build a tuple suitable for using in a helpable action
+	def helpKeyAction(self, actionName):
+		actions = {
+			"red": (self.openIMDb, _("IMDB search for current event")),
+			"redlong": (self.sortEPG, _("Sort the EPG list")),
+			"green": (self.addEditTimer, _("Add/Remove timer for current event")),
+			"greenlong": (self.openTimerList, _("Show timer list")),
+			"yellow": (self.openEPGSearch, _("Search for similar events")),
+			"yellowlong": (lambda _: None, _("Search for similar events")),
+			"blue": (self.addEditAutoTimer, _("Add an autotimer for current event")),
+			"bluelong": (self.openAutoTimerList, _("Show autotimer list")),
+			"ok": (self.OK, _("Zap to channel/service")),
+			"oklong": (self.OKLong, _("Zap to channel/service and close")),
+			"rec": (self.addEditTimerMenu, _("Add a record timer for current event")),
+			"reclong": (self.addEditZapTimerSilent, _("Add a zap timer for current event"))
+		}
+		return actions[actionName]
+
+	def _updateButtonText(self):
+		pass

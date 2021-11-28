@@ -1,17 +1,17 @@
 from time import localtime, time, strftime
 
-from enigma import eEPGCache, eListbox, eListboxPythonMultiContent, loadPNG, gFont, getDesktop, eRect, eSize, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_WRAP, BT_SCALE, BT_KEEP_ASPECT_RATIO, BT_ALIGN_CENTER
+from enigma import eListbox, eListboxPythonMultiContent, eServiceReference, gFont, eRect, eSize, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_WRAP, BT_SCALE, BT_KEEP_ASPECT_RATIO, BT_ALIGN_CENTER
 
-from skin import parseColor, parseFont
+from skin import parseColor, parseFont, parseScale, applySkinFactor
 from Components.EpgListBase import EPGListBase
 from Components.GUIComponent import GUIComponent
-from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend, MultiContentEntryPixmapAlphaTest
+from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend
 from Components.Renderer.Picon import getPiconName
 from Components.config import config
 from RecordTimer import RecordTimer
-from ServiceReference import ServiceReference
 from Tools.Alternatives import CompareWithAlternatives
 from Tools.Directories import resolveFilename, SCOPE_CURRENT_SKIN
+from Tools.LoadPixmap import LoadPixmap
 from Tools.TextBoundary import getTextBoundarySize
 
 MAX_TIMELINES = 6
@@ -83,7 +83,7 @@ class EPGListGrid(EPGListBase):
 
 		self.serviceFontName = "Regular"
 		self.eventFontName = "Regular"
-		self.eventFontSize = self.serviceFontSize = 28 if self.isFullHd else 20
+		self.eventFontSize = self.serviceFontSize = applySkinFactor(19)
 
 		self.serviceBorderWidth = 1
 		self.serviceNamePadding = 3
@@ -149,17 +149,17 @@ class EPGListGrid(EPGListBase):
 				elif attrib == "ServiceBorderColor":
 					self.borderColorService = parseColor(value).argb()
 				elif attrib == "ServiceBorderWidth":
-					self.serviceBorderWidth = int(value)
+					self.serviceBorderWidth = parseScale(value)
 				elif attrib == "ServiceNamePadding":
-					self.serviceNamePadding = int(value)
+					self.serviceNamePadding = parseScale(value)
 				elif attrib == "ServiceNumberPadding":
-					self.serviceNumberPadding = int(value)
+					self.serviceNumberPadding = parseScale(value)
 				elif attrib == "EntryBorderColor":
 					self.borderColor = parseColor(value).argb()
 				elif attrib == "EventBorderWidth":
-					self.eventBorderWidth = int(value)
+					self.eventBorderWidth = parseScale(value)
 				elif attrib == "EventNamePadding":
-					self.eventNamePadding = int(value)
+					self.eventNamePadding = parseScale(value)
 
 				elif attrib == "RecordForegroundColor":
 					self.foreColorRecord = parseColor(value).argb()
@@ -219,10 +219,10 @@ class EPGListGrid(EPGListBase):
 		events = self.selectedService[2]
 		refstr = self.selectedService[0]
 		if self.selectedEventIndex is None or not events or (self.selectedEventIndex and events and self.selectedEventIndex > len(events) - 1):
-			return None, ServiceReference(refstr)
+			return None, eServiceReference(refstr)
 		event = events[self.selectedEventIndex]  # (eventId, eventTitle, beginTime, duration)
 		eventId = event[0]
-		service = ServiceReference(refstr)
+		service = eServiceReference(refstr)
 		event = self.getEventFromId(service, eventId)  # Get full event info.
 		return event, service
 
@@ -248,32 +248,27 @@ class EPGListGrid(EPGListBase):
 	GUI_WIDGET = eListbox
 
 	def setItemsPerPage(self):
-		if self.numberOfRows:
-			self.epgConfig.itemsperpage.default = self.numberOfRows
-		itemHeight = self.listHeight / self.epgConfig.itemsperpage.value if self.listHeight > 0 else 54  # Some default (270 / 5).
-
+		EPGListBase.setItemsPerPage(self, 54)
 		if not self.isInfobar and config.epgselection.grid.heightswitch.value:
-			if ((self.listHeight / config.epgselection.grid.itemsperpage.value) / 3) >= 27:
-				tmpItemHeight = ((self.listHeight / config.epgselection.grid.itemsperpage.value) / 3)
-			elif ((self.listHeight / config.epgselection.grid.itemsperpage.value) / 2) >= 27:
-				tmpItemHeight = ((self.listHeight / config.epgselection.grid.itemsperpage.value) / 2)
+			numberOfRows = (self.listHeight // self.itemHeight) or 8
+			if ((self.listHeight / numberOfRows) / 3) >= 27:
+				tmpItemHeight = ((self.listHeight / numberOfRows) / 3)
+			elif ((self.listHeight / numberOfRows) / 2) >= 27:
+				tmpItemHeight = ((self.listHeight / numberOfRows) / 2)
 			else:
 				tmpItemHeight = 27
-			if tmpItemHeight < itemHeight:
-				itemHeight = tmpItemHeight
+			if tmpItemHeight < self.itemHeight:
+				self.itemHeight = tmpItemHeight
 			else:
-				if ((self.listHeight / config.epgselection.grid.itemsperpage.value) * 3) <= 45:
-					itemHeight = ((self.listHeight / config.epgselection.grid.itemsperpage.value) * 3)
-				elif ((self.listHeight / config.epgselection.grid.itemsperpage.value) * 2) <= 45:
-					itemHeight = ((self.listHeight / config.epgselection.grid.itemsperpage.value) * 2)
+				if ((self.listHeight / numberOfRows) * 3) <= 45:
+					self.itemHeight = ((self.listHeight / numberOfRows) * 3)
+				elif ((self.listHeight / numberOfRows) * 2) <= 45:
+					self.itemHeight = ((self.listHeight / numberOfRows) * 2)
 				else:
-					itemHeight = 45
-
-		self.l.setItemHeight(itemHeight)
-		self.instance.resize(eSize(self.listWidth, self.listHeight / itemHeight * itemHeight))
-		self.listHeight = self.instance.size().height()
-		self.listWidth = self.instance.size().width()
-		self.itemHeight = itemHeight
+					self.itemHeight = 45
+			self.l.setItemHeight(self.itemHeight)
+			self.instance.resize(eSize(self.listWidth, self.listHeight / self.itemHeight * self.itemHeight))
+			self.listHeight = self.instance.size().height()
 
 	def setFontsize(self):
 		self.l.setFont(0, gFont(self.serviceFontName, self.serviceFontSize + self.epgConfig.servfs.value))
@@ -406,7 +401,7 @@ class EPGListGrid(EPGListBase):
 				piconHeight = self.piconSize.height()
 				displayPicon = None
 				if picon != "":
-					displayPicon = loadPNG(picon)
+					displayPicon = LoadPixmap(picon)
 				if displayPicon is not None:
 					res.append(MultiContentEntryPixmapAlphaBlend(
 						pos=(colX, r1.top() + self.serviceBorderWidth),
@@ -460,46 +455,46 @@ class EPGListGrid(EPGListBase):
 		if self.graphic:
 			# Service Borders
 			if self.borderTopPix is not None:
-				res.append(MultiContentEntryPixmapAlphaTest(
+				res.append(MultiContentEntryPixmapAlphaBlend(
 						pos=(r1.left(), r1.top()),
 						size=(r1.width(), self.serviceBorderWidth),
 						png=self.borderTopPix,
 						flags=BT_SCALE))
-				res.append(MultiContentEntryPixmapAlphaTest(
+				res.append(MultiContentEntryPixmapAlphaBlend(
 						pos=(left, top),
 						size=(width, self.eventBorderWidth),
 						png=self.borderTopPix,
 						flags=BT_SCALE))
 			if self.borderBottomPix is not None:
-				res.append(MultiContentEntryPixmapAlphaTest(
-						pos=(r1.left(), r1.height()-self.serviceBorderWidth),
+				res.append(MultiContentEntryPixmapAlphaBlend(
+						pos=(r1.left(), r1.height() - self.serviceBorderWidth),
 						size=(r1.width(), self.serviceBorderWidth),
 						png=self.borderBottomPix,
 						flags=BT_SCALE))
-				res.append(MultiContentEntryPixmapAlphaTest(
-						pos=(left, height-self.eventBorderWidth),
+				res.append(MultiContentEntryPixmapAlphaBlend(
+						pos=(left, height - self.eventBorderWidth),
 						size=(width, self.eventBorderWidth),
 						png=self.borderBottomPix,
 						flags=BT_SCALE))
 			if self.borderLeftPix is not None:
-				res.append(MultiContentEntryPixmapAlphaTest(
+				res.append(MultiContentEntryPixmapAlphaBlend(
 						pos=(r1.left(), r1.top()),
 						size=(self.serviceBorderWidth, r1.height()),
 						png=self.borderLeftPix,
 						flags=BT_SCALE))
-				res.append(MultiContentEntryPixmapAlphaTest(
+				res.append(MultiContentEntryPixmapAlphaBlend(
 						pos=(left, top),
 						size=(self.eventBorderWidth, height),
 						png=self.borderLeftPix,
 						flags=BT_SCALE))
 			if self.borderRightPix is not None:
-				res.append(MultiContentEntryPixmapAlphaTest(
-						pos=(r1.width()-self.serviceBorderWidth, r1.left()),
+				res.append(MultiContentEntryPixmapAlphaBlend(
+						pos=(r1.width() - self.serviceBorderWidth, r1.left()),
 						size=(self.serviceBorderWidth, r1.height()),
 						png=self.borderRightPix,
 						flags=BT_SCALE))
-				res.append(MultiContentEntryPixmapAlphaTest(
-						pos=(left + width-self.eventBorderWidth, top),
+				res.append(MultiContentEntryPixmapAlphaBlend(
+						pos=(left + width - self.eventBorderWidth, top),
 						size=(self.eventBorderWidth, height),
 						png=self.borderRightPix,
 						flags=BT_SCALE))
@@ -508,7 +503,7 @@ class EPGListGrid(EPGListBase):
 			# the prevents issues with lingering selection highlights.
 			png = (selected and events is None and self.selEvPix) or self.othEvPix
 			if png:
-				res.append(MultiContentEntryPixmapAlphaTest(
+				res.append(MultiContentEntryPixmapAlphaBlend(
 					pos=(left + self.eventBorderWidth, top + self.eventBorderWidth),
 					size=(width - 2 * self.eventBorderWidth, height - 2 * self.eventBorderWidth),
 					png=png,
@@ -536,7 +531,7 @@ class EPGListGrid(EPGListBase):
 				if serviceTimers is not None:
 					timer, matchType = RecordTimer.isInTimerOnService(serviceTimers, stime, duration)
 					timerIcon, autoTimerIcon = self.getPixmapsForTimer(timer, matchType, selected)
-					if matchType not in (2,3):
+					if matchType not in (2, 3):
 						timer = None
 				else:
 					timer = matchType = timerIcon = None
@@ -588,7 +583,7 @@ class EPGListGrid(EPGListBase):
 				if bgpng is not None and self.graphic:
 					backColor = None
 					backColorSel = None
-					res.append(MultiContentEntryPixmapAlphaTest(
+					res.append(MultiContentEntryPixmapAlphaBlend(
 						pos=(left + xpos + self.eventBorderWidth, top + self.eventBorderWidth),
 						size=(ewidth - 2 * self.eventBorderWidth, height - 2 * self.eventBorderWidth),
 						png=bgpng,
@@ -622,26 +617,26 @@ class EPGListGrid(EPGListBase):
 				# Event box borders.
 				if self.graphic:
 					if borderTopPix is not None:
-						res.append(MultiContentEntryPixmapAlphaTest(
+						res.append(MultiContentEntryPixmapAlphaBlend(
 								pos=(left + xpos, top),
 								size=(ewidth, self.eventBorderWidth),
 								png=borderTopPix,
 								flags=BT_SCALE))
 					if borderBottomPix is not None:
-						res.append(MultiContentEntryPixmapAlphaTest(
-								pos=(left + xpos, height-self.eventBorderWidth),
+						res.append(MultiContentEntryPixmapAlphaBlend(
+								pos=(left + xpos, height - self.eventBorderWidth),
 								size=(ewidth, self.eventBorderWidth),
 								png=borderBottomPix,
 								flags=BT_SCALE))
 					if borderLeftPix is not None:
-						res.append(MultiContentEntryPixmapAlphaTest(
+						res.append(MultiContentEntryPixmapAlphaBlend(
 								pos=(left + xpos, top),
 								size=(self.eventBorderWidth, height),
 								png=borderLeftPix,
 								flags=BT_SCALE))
 					if borderRightPix is not None:
-						res.append(MultiContentEntryPixmapAlphaTest(
-								pos=(left + xpos + ewidth-self.eventBorderWidth, top),
+						res.append(MultiContentEntryPixmapAlphaBlend(
+								pos=(left + xpos + ewidth - self.eventBorderWidth, top),
 								size=(self.eventBorderWidth, height),
 								png=borderRightPix,
 								flags=BT_SCALE))
@@ -649,7 +644,7 @@ class EPGListGrid(EPGListBase):
 				# Recording icons.
 				if timerIcon is not None and ewidth > 23:
 					if config.epgselection.grid.rec_icon_height.value != "hide":
-						clockSize = 26 if self.isFullHd else 21
+						clockSize = applySkinFactor(17)
 						if config.epgselection.grid.rec_icon_height.value == "middle":
 							recIconHeight = top + (height - clockSize) / 2
 						elif config.epgselection.grid.rec_icon_height.value == "top":
@@ -657,7 +652,7 @@ class EPGListGrid(EPGListBase):
 						else:
 							recIconHeight = top + height - clockSize
 						if matchType == 0:
-							pos = (left + xpos + ewidth - (15 if self.isFullHd else 13), recIconHeight)
+							pos = (left + xpos + ewidth - applySkinFactor(10), recIconHeight)
 						else:
 							pos = (left + xpos + ewidth - clockSize, recIconHeight)
 						res.append(MultiContentEntryPixmapAlphaBlend(
@@ -665,23 +660,19 @@ class EPGListGrid(EPGListBase):
 							png=timerIcon))
 						if autoTimerIcon:
 							res.append(MultiContentEntryPixmapAlphaBlend(
-								pos=(pos[0]-clockSize,pos[1]), size=(clockSize, clockSize),
+								pos=(pos[0] - clockSize, pos[1]), size=(clockSize, clockSize),
 								png=autoTimerIcon))
 		return res
 
 	def getSelectionPosition(self):
-		# Adjust absolute index to index in displayed view.
-		index = self.l.getCurrentSelectionIndex() % self.epgConfig.itemsperpage.value
-		sely = self.instance.position().y() + self.itemHeight * index
-		if sely >= self.instance.position().y() + self.listHeight:
-			sely -= self.listHeight
-		return self.listWidth, sely
+		_, sely = EPGListBase.getSelectionPosition(self)
+		return self.selectionRect.left() + self.selectionRect.width(), sely
 
 	def refreshSelection(self):
 		events = self.selectedService and self.selectedService[2]  # (service, serviceName, events, picon)
 		if events and self.selectedEventIndex is not None and self.selectedEventIndex < len(events):
 			event = events[self.selectedEventIndex]  # (eventId, eventTitle, beginTime, duration)
-			xpos, width = self.calcEventPosAndWidthHelper(event[2], event[3], 
+			xpos, width = self.calcEventPosAndWidthHelper(event[2], event[3],
 				self.timeBase, self.timeBase + self.timeEpochSecs, self.eventRect.width())
 			self.selectionRect = eRect(xpos + self.eventRect.left(), 0, width, self.eventRect.height())
 		else:
@@ -756,26 +747,26 @@ class EPGListGrid(EPGListBase):
 	def fillEPGNoRefresh(self, services=None):
 		if not self.graphicsloaded:
 			if self.graphic:
-				self.nowEvPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/CurrentEvent.png"))
-				self.nowSelEvPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedCurrentEvent.png"))
-				self.othEvPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/OtherEvent.png"))
-				self.selEvPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedEvent.png"))
-				self.othServPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/OtherService.png"))
-				self.nowServPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/CurrentService.png"))
-				self.recEvPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/RecordEvent.png"))
-				self.recSelEvPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedRecordEvent.png"))
-				self.zapEvPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/ZapEvent.png"))
-				self.zapSelEvPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedZapEvent.png"))
-				self.borderTopPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/BorderTop.png"))
-				self.borderBottomPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/BorderBottom.png"))
-				self.borderLeftPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/BorderLeft.png"))
-				self.borderRightPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/BorderRight.png"))
-				self.borderSelectedTopPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedBorderTop.png"))
-				self.borderSelectedBottomPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedBorderBottom.png"))
-				self.borderSelectedLeftPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedBorderLeft.png"))
-				self.borderSelectedRightPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedBorderRight.png"))
-			self.infoPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/information.png"))
-			self.selInfoPix = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedInformation.png"))
+				self.nowEvPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/CurrentEvent.png"))
+				self.nowSelEvPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedCurrentEvent.png"))
+				self.othEvPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/OtherEvent.png"))
+				self.selEvPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedEvent.png"))
+				self.othServPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/OtherService.png"))
+				self.nowServPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/CurrentService.png"))
+				self.recEvPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/RecordEvent.png"))
+				self.recSelEvPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedRecordEvent.png"))
+				self.zapEvPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/ZapEvent.png"))
+				self.zapSelEvPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedZapEvent.png"))
+				self.borderTopPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/BorderTop.png"))
+				self.borderBottomPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/BorderBottom.png"))
+				self.borderLeftPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/BorderLeft.png"))
+				self.borderRightPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/BorderRight.png"))
+				self.borderSelectedTopPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedBorderTop.png"))
+				self.borderSelectedBottomPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedBorderBottom.png"))
+				self.borderSelectedLeftPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedBorderLeft.png"))
+				self.borderSelectedRightPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedBorderRight.png"))
+			self.infoPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/information.png"))
+			self.selInfoPix = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/SelectedInformation.png"))
 
 			self.graphicsloaded = True
 
@@ -884,13 +875,13 @@ class TimelineText(GUIComponent):
 				elif attrib == "backgroundColor":
 					self.backColor = parseColor(value).argb()
 				elif attrib == "borderWidth":
-					self.borderWidth = int(value)
+					self.borderWidth = parseScale(value)
 				elif attrib == "TimelineFont":
 					font = parseFont(value, ((1, 1), (1, 1)))
 					self.timelineFontName = font.family
 					self.timelineFontSize = font.pointSize
 				elif attrib == "itemHeight":
-					self.itemHeight = int(value)
+					self.itemHeight = parseScale(value)
 				else:
 					attribs.append((attrib, value))
 			self.skinAttributes = attribs
@@ -900,8 +891,8 @@ class TimelineText(GUIComponent):
 		self.setFontsize()
 		self.l.setItemHeight(self.itemHeight)
 		if self.graphic:
-			self.timelineDate = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/TimeLineDate.png"))
-			self.timelineTime = loadPNG(resolveFilename(SCOPE_CURRENT_SKIN, "epg/TimeLineTime.png"))
+			self.timelineDate = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/TimeLineDate.png"))
+			self.timelineTime = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/TimeLineTime.png"))
 		return rc
 
 	def setFontsize(self):
@@ -922,14 +913,20 @@ class TimelineText(GUIComponent):
 		eventLeft = eventRect.left()
 
 		res = [None]
-		
+
 		# Note: eventRect and serviceRect are relative to the timeline text position
 		# while the time lines are relative to the GraphEPG screen position!
 		if self.timeBase != timeBase or self.timeEpoch != timeEpoch or force:
 			serviceRect = list.getServiceRect()
 			timeSteps = 60 if timeEpoch > 180 else 30
 			numLines = timeEpoch / timeSteps
-			incWidth = eventRect.width() / numLines
+# Whereas we need the integer division to get numLines, we
+# need real division to find out what the incremental space is
+# between successive timelines
+# NOTE: that Py3 can/will be different!
+#
+			fnum = float(timeEpoch) / float(timeSteps)
+			incWidth = int(eventRect.width() / fnum)
 			timeStepsCalc = timeSteps * SECS_IN_MIN
 
 			nowTime = localtime(time())
@@ -938,11 +935,11 @@ class TimelineText(GUIComponent):
 			if nowTime.tm_year == begTime.tm_year and nowTime.tm_yday == begTime.tm_yday:
 				datestr = _("Today")
 			else:
-				if serviceWidth > 179:
+				if serviceWidth > (self.timelineFontSize + self.epgConfig.timelinefs.value) * 8.1:
 					dateFormat = config.usage.date.daylong.value
-				elif serviceWidth > 129:
+				elif serviceWidth > (self.timelineFontSize + self.epgConfig.timelinefs.value) * 5.8:
 					dateFormat = config.usage.date.dayshort.value
-				elif serviceWidth > 79:
+				elif serviceWidth > (self.timelineFontSize + self.epgConfig.timelinefs.value) * 3.95:
 					dateFormat = config.usage.date.daysmall.value
 				else:
 					dateFormat = "%a"
@@ -954,7 +951,7 @@ class TimelineText(GUIComponent):
 			if bgpng is not None and self.graphic:
 				backColor = None
 				backColorSel = None
-				res.append(MultiContentEntryPixmapAlphaTest(
+				res.append(MultiContentEntryPixmapAlphaBlend(
 					pos=(0, 0),
 					size=(serviceRect.width(), self.listHeight),
 					png=bgpng,
@@ -969,7 +966,7 @@ class TimelineText(GUIComponent):
 
 			res.append(MultiContentEntryText(
 				pos=(5, 0),
-				size=(serviceRect.width()-15, self.listHeight),
+				size=(serviceRect.width() - 15, self.listHeight),
 				font=0, flags=int(config.epgselection.grid.timelinedate_alignment.value),
 				text=_(datestr),
 				color=foreColor,
@@ -980,7 +977,7 @@ class TimelineText(GUIComponent):
 			if bgpng is not None and self.graphic:
 				backColor = None
 				backColorSel = None
-				res.append(MultiContentEntryPixmapAlphaTest(
+				res.append(MultiContentEntryPixmapAlphaBlend(
 					pos=(serviceRect.width(), 0),
 					size=(eventRect.width(), self.listHeight),
 					png=bgpng,

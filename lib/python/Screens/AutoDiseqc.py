@@ -232,7 +232,7 @@ class AutoDiseqc(Screen, ConfigListScreen):
 		self["tunerstatusbar"] = StaticText(" ")
 
 		self.list = []
-		ConfigListScreen.__init__(self, self.list, session = self.session)
+		ConfigListScreen.__init__(self, self.list, session=self.session)
 
 		self["config"].list = self.list
 		self["config"].l.setList(self.list)
@@ -256,7 +256,6 @@ class AutoDiseqc(Screen, ConfigListScreen):
 				self.sat_frequencies += self.circular_sat_frequencies
 		elif sat_found:
 			self.sat_frequencies.remove(x)
-
 
 		if not self.openFrontend():
 			self.oldref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
@@ -284,6 +283,13 @@ class AutoDiseqc(Screen, ConfigListScreen):
 		self.count = 0
 		self.state = 0
 		self.abort = False
+
+		self.diseqc = [
+			config.Nims[self.feid].diseqcA.value,
+			config.Nims[self.feid].diseqcB.value,
+			config.Nims[self.feid].diseqcC.value,
+			config.Nims[self.feid].diseqcD.value,
+		]
 
 		self.statusTimer = eTimer()
 		self.statusTimer.callback.append(self.statusCallback)
@@ -320,16 +326,16 @@ class AutoDiseqc(Screen, ConfigListScreen):
 
 	def statusCallback(self):
 		if self.state == 0:
-			if self.port_index == 0:
+			if self.port_index == 0 and self.diseqc[0] == "3600":
 				self.clearNimEntries()
 				config.Nims[self.feid].diseqcA.value = "%d" % (self.sat_frequencies[self.index][self.SAT_TABLE_ORBPOS])
-			elif self.port_index == 1:
+			elif self.port_index == 1 and self.diseqc[1] == "3600":
 				self.clearNimEntries()
 				config.Nims[self.feid].diseqcB.value = "%d" % (self.sat_frequencies[self.index][self.SAT_TABLE_ORBPOS])
-			elif self.port_index == 2:
+			elif self.port_index == 2 and self.diseqc[2] == "3600":
 				self.clearNimEntries()
 				config.Nims[self.feid].diseqcC.value = "%d" % (self.sat_frequencies[self.index][self.SAT_TABLE_ORBPOS])
-			elif self.port_index == 3:
+			elif self.port_index == 3 and self.diseqc[3] == "3600":
 				self.clearNimEntries()
 				config.Nims[self.feid].diseqcD.value = "%d" % (self.sat_frequencies[self.index][self.SAT_TABLE_ORBPOS])
 
@@ -347,11 +353,18 @@ class AutoDiseqc(Screen, ConfigListScreen):
 			config.Nims[self.feid].simpleDiSEqCSetVoltageTone = self.simple_tone
 			config.Nims[self.feid].simpleDiSEqCOnlyOnSatChange = self.simple_sat_change
 
-
 			self.saveAndReloadNimConfig()
 			self.state += 1
 
 		elif self.state == 1:
+			if self.diseqc[self.port_index] != "3600":
+				self.statusTimer.stop()
+				self.count = 0
+				self.state = 0
+				self.index = len(self.sat_frequencies) - 1
+				self.tunerStopScan(False)
+				return
+
 			if self.circular_setup:
 				if self.raw_channel:
 					self.raw_channel.receivedTsidOnid.get().remove(self.gotTsidOnid)
@@ -370,7 +383,7 @@ class AutoDiseqc(Screen, ConfigListScreen):
 				self.raw_channel.requestTsidOnid()
 			self.tuner.tune(self.sat_frequencies[self.index])
 
-			self["statusbar"].setText(_("Checking tuner %s\nDiSEqC port %s for %s") % (chr(self.feid+65), self.diseqc_ports[self.port_index], self.sat_frequencies[self.index][self.SAT_TABLE_NAME]))
+			self["statusbar"].setText(_("Checking tuner %s\nDiSEqC port %s for %s") % (chr(self.feid + 65), self.diseqc_ports[self.port_index], self.sat_frequencies[self.index][self.SAT_TABLE_NAME]))
 			self["tunerstatusbar"].setText(" ")
 
 			self.count = 0
@@ -402,10 +415,10 @@ class AutoDiseqc(Screen, ConfigListScreen):
 		self.saveAndReloadNimConfig()
 
 	def clearNimEntries(self):
-		config.Nims[self.feid].diseqcA.value = "3601"
-		config.Nims[self.feid].diseqcB.value = "3601"
-		config.Nims[self.feid].diseqcC.value = "3601"
-		config.Nims[self.feid].diseqcD.value = "3601"
+		config.Nims[self.feid].diseqcA.value = "3601" if self.diseqc[0] == "3600" else self.diseqc[0]
+		config.Nims[self.feid].diseqcB.value = "3601" if self.diseqc[1] == "3600" else self.diseqc[1]
+		config.Nims[self.feid].diseqcC.value = "3601" if self.diseqc[2] == "3600" else self.diseqc[2]
+		config.Nims[self.feid].diseqcD.value = "3601" if self.diseqc[3] == "3600" else self.diseqc[3]
 
 	def saveAndReloadNimConfig(self):
 		config.Nims[self.feid].save()

@@ -1,13 +1,15 @@
-import os, re, unicodedata
+import os
+import re
+import unicodedata
 from Renderer import Renderer
-from enigma import ePixmap, ePicLoad
+from enigma import ePixmap, eServiceReference
 from Tools.Alternatives import GetWithAlternative
-from Tools.Directories import pathExists, SCOPE_ACTIVE_SKIN, resolveFilename
+from Tools.Directories import pathExists, SCOPE_CURRENT_SKIN, resolveFilename
 from Components.Harddisk import harddiskmanager
-from ServiceReference import ServiceReference
+
 
 class PiconLocator:
-	def __init__(self, piconDirectories = ['picon']):
+	def __init__(self, piconDirectories=['picon']):
 		harddiskmanager.on_partition_list_change.append(self.__onPartitionChange)
 		self.piconDirectories = piconDirectories
 		self.activePiconPath = None
@@ -23,7 +25,7 @@ class PiconLocator:
 				path = os.path.join(mountpoint, piconDirectory) + '/'
 				if os.path.isdir(path) and path not in self.searchPaths:
 					for fn in os.listdir(path):
-						if fn.endswith('.png'):
+						if fn.endswith('.png') or fn.endswith('.svg'):
 							print "[PiconLocator] adding path:", path
 							self.searchPaths.append(path)
 							break
@@ -48,22 +50,24 @@ class PiconLocator:
 
 	def findPicon(self, serviceName):
 		if self.activePiconPath is not None:
-			pngname = self.activePiconPath + serviceName + ".png"
-			if pathExists(pngname):
-				return pngname
+			for ext in ('.png', '.svg'):
+				pngname = self.activePiconPath + serviceName + ext
+				if pathExists(pngname):
+					return pngname
 		else:
 			for path in self.searchPaths:
-				pngname = path + serviceName + ".png"
-				if pathExists(pngname):
-					self.activePiconPath = path
-					return pngname
+				for ext in ('.png', '.svg'):
+					pngname = path + serviceName + ext
+					if pathExists(pngname):
+						self.activePiconPath = path
+						return pngname
 		return ""
 
 	def addSearchPath(self, value):
 		if pathExists(value):
 			if not value.endswith('/'):
 				value += '/'
-			if not value.startswith('/media/net') and not value.startswith('/media/autofs') and	value not in self.searchPaths:
+			if not value.startswith('/media/net') and not value.startswith('/media/autofs') and value not in self.searchPaths:
 				self.searchPaths.append(value)
 
 	def getPiconName(self, serviceName):
@@ -89,7 +93,7 @@ class PiconLocator:
 			fields[9] = '0'
 			pngname = self.findPicon('_'.join(fields))
 		if not pngname: # picon by channel name
-			name = ServiceReference(serviceName).getServiceName()
+			name = eServiceReference(serviceName).getServiceName()
 			name = unicodedata.normalize('NFKD', unicode(name, 'utf_8', errors='ignore')).encode('ASCII', 'ignore')
 			name = re.sub('[^a-z0-9]', '', name.replace('&', 'and').replace('+', 'plus').replace('*', 'star').lower())
 			if len(name) > 0:
@@ -101,28 +105,34 @@ class PiconLocator:
 					pngname = self.findPicon(series)
 		return pngname
 
+
 piconLocator = None
+
 
 def initPiconPaths():
 	global piconLocator
 	piconLocator = PiconLocator()
+
+
 initPiconPaths()
+
 
 def getPiconName(serviceName):
 	return piconLocator.getPiconName(serviceName)
+
 
 class Picon(Renderer):
 	def __init__(self):
 		Renderer.__init__(self)
 		self.pngname = None
-		self.defaultpngname = resolveFilename(SCOPE_ACTIVE_SKIN, "picon_default.png")
+		self.defaultpngname = resolveFilename(SCOPE_CURRENT_SKIN, "picon_default.png")
 
 	def applySkin(self, desktop, parent):
 		attribs = self.skinAttributes[:]
 		for (attrib, value) in self.skinAttributes:
 			if attrib == "path":
 				piconLocator.addSearchPath(value)
-				attribs.remove((attrib,value))
+				attribs.remove((attrib, value))
 		self.skinAttributes = attribs
 		rc = Renderer.applySkin(self, desktop, parent)
 		self.changed((self.CHANGED_DEFAULT,))

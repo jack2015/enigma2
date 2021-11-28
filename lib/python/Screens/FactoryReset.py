@@ -7,6 +7,7 @@ from os.path import isdir, join as pathjoin
 
 from Components.config import ConfigYesNo, config
 from Components.Sources.StaticText import StaticText
+from Screens.MessageBox import MessageBox
 from Screens.ParentalControlSetup import ProtectedScreen
 from Screens.Setup import Setup
 from Tools.Directories import SCOPE_CONFIG, SCOPE_SKIN, resolveFilename
@@ -25,7 +26,7 @@ class FactoryReset(Setup, ProtectedScreen):
 		self.resetTimers = ConfigYesNo(default=True)
 		self.resetOthers = ConfigYesNo(default=True)
 		self.setup = {}  # Old Setup config entry data.
-		Setup.__init__(self, session=session, setup="FactoryReset")
+		Setup.__init__(self, session=session, setup="factoryreset")
 		self["key_green"].text = _("Reset")
 		ProtectedScreen.__init__(self)
 		self.setTitle(_("Factory Reset"))
@@ -34,9 +35,6 @@ class FactoryReset(Setup, ProtectedScreen):
 		return config.ParentalControl.setuppinactive.value and (
 			not config.ParentalControl.config_sections.main_menu.value and not config.ParentalControl.config_sections.configuration.value or hasattr(self.session, "infobar") and self.session.infobar is None
 		) and config.ParentalControl.config_sections.manufacturer_reset.value
-
-	def createSetupList(self):  # Old Setup config list builder method.
-		self.createSetup()
 
 	def createSetup(self):
 		self.analyseEnigma2()
@@ -56,7 +54,7 @@ class FactoryReset(Setup, ProtectedScreen):
 			if len(self.settings):
 				self.list.append((_("Remove all settings data"), self.resetSettings, _("Select 'Yes' to remove all main settings configuration data. Selecting this option will set all Enigma2 settings back to their default values.  This will also cause Enigma2 to run the Welcome Wizard on restart.")))
 			if len(self.skins):
-				self.list.append((_("Remove all skin data"), self.resetSkins, _("Select 'Yes' to remove all user customisations of skin data. Selecting this option will remove all user based skin customisations. All affected skins will return to their standard settings. This will also clear any customied boot logos and backdrops.")))
+				self.list.append((_("Remove all skin data"), self.resetSkins, _("Select 'Yes' to remove all user customisations of skin data. Selecting this option will remove all user based skin customisations. All affected skins will return to their standard settings. This will also clear any customised boot logos and backdrops.")))
 			if len(self.timers):
 				self.list.append((_("Remove all timer data"), self.resetTimers, _("Select 'Yes' to remove all timer configuration data. Selecting this option will clear all timers, autotimers and power timers.")))
 			if len(self.others):
@@ -105,52 +103,58 @@ class FactoryReset(Setup, ProtectedScreen):
 			elif file.endswith(".mvi"):
 				self.skins.append(file)
 			else:
-				# print "[FactoryReset] DEBUG: Unclassified file='%s'." % file
+				# print("[FactoryReset] DEBUG: Unclassified file='%s'." % file)
 				self.others.append(file)
 
 	def keySave(self):
+		restartBox = self.session.openWithCallback(self.keySaveCallback, MessageBox, _("This will permanently delete the current configuration. It would be a good idea to make a backup before taking this drastic action. Are you certain you want to continue with a factory reset?"), default=False)
+		restartBox.setTitle(_("Factory Reset: Clearing data"))
+
+	def keySaveCallback(self, answer):
+		if not answer:
+			return
 		configDir = resolveFilename(SCOPE_CONFIG)
 		if self.resetFull.value:
-			print "[FactoryReset] Performing a full factory reset."
+			print("[FactoryReset] Performing a full factory reset.")
 			self.wipeFiles(configDir, [""])
 			defaultFiles = pathjoin(resolveFilename(SCOPE_SKIN), "defaults", ".")
 			if isdir(defaultFiles):
-				print "[FactoryReset] Copying default configuration from '%s'." % defaultFiles
+				print("[FactoryReset] Copying default configuration from '%s'." % defaultFiles)
 				system("cp -a %s %s" % (defaultFiles, configDir))
 			else:
-				print "[FactoryReset] Warning: No default configuration is available!"
+				print("[FactoryReset] Warning: No default configuration is available!")
 		else:
 			if len(self.bouquets) and self.resetBouquets.value:
-				print "[FactoryReset] Performing a bouquets reset."
+				print("[FactoryReset] Performing a bouquets reset.")
 				self.wipeFiles(configDir, self.bouquets)
 			if len(self.keymaps) and self.resetKeymaps.value:
-				print "[FactoryReset] Performing a keymap reset."
+				print("[FactoryReset] Performing a keymap reset.")
 				self.wipeFiles(configDir, self.keymaps)
 			if len(self.networks) and self.resetNetworks.value:
-				print "[FactoryReset] Performing a networks reset."
+				print("[FactoryReset] Performing a networks reset.")
 				self.wipeFiles(configDir, self.networks)
 			if len(self.plugins) and self.resetPlugins.value:
-				print "[FactoryReset] Performing a plugins reset."
+				print("[FactoryReset] Performing a plugins reset.")
 				self.wipeFiles(configDir, self.plugins)
 			if len(self.resumePoints) and self.resetResumePoints.value:
-				print "[FactoryReset] Performing a resume points reset."
+				print("[FactoryReset] Performing a resume points reset.")
 				self.wipeFiles(configDir, self.resumePoints)
 			if len(self.settings) and self.resetSettings.value:
-				print "[FactoryReset] Performing a settings reset."
+				print("[FactoryReset] Performing a settings reset.")
 				self.wipeFiles(configDir, self.settings)
 			if len(self.skins) and self.resetSkins.value:
-				print "[FactoryReset] Performing a skins reset."
+				print("[FactoryReset] Performing a skins reset.")
 				self.wipeFiles(configDir, self.skins)
 			if len(self.timers) and self.resetTimers.value:
-				print "[FactoryReset] Performing a timers reset."
+				print("[FactoryReset] Performing a timers reset.")
 				self.wipeFiles(configDir, self.timers)
 			if len(self.others) and self.resetOthers.value:
-				print "[FactoryReset] Performing an other files reset."
+				print("[FactoryReset] Performing an other files reset.")
 				self.wipeFiles(configDir, self.others)
-		print "[FactoryReset] Stopping the active service to display the backdrop."
+		print("[FactoryReset] Stopping the active service to display the backdrop.")
 		self.session.nav.stopService()
 		system("/usr/bin/showiframe /usr/share/backdrop.mvi")
-		print "[FactoryReset] Stopping and exiting enigma2."
+		print("[FactoryReset] Stopping and exiting enigma2.")
 		_exit(0)
 		self.close()  # We should never get to here!
 
@@ -159,20 +163,14 @@ class FactoryReset(Setup, ProtectedScreen):
 			target = pathjoin(path, file)
 			try:
 				if isdir(target):
-					# print "[FactoryReset] DEBUG: Removing directory '%s'." % target
+					# print("[FactoryReset] DEBUG: Removing directory '%s'." % target)
 					shutil.rmtree(target)
 				else:
-					# print "[FactoryReset] DEBUG: Removing file '%s'." % target
+					# print("[FactoryReset] DEBUG: Removing file '%s'." % target)
 					remove(target)
 			except (IOError, OSError) as err:
 				if err.errno != errno.ENOENT:
-					print "[FactoryReset] Error: Unable to delete '%s'!  (%s)" % (target, str(err))
+					print("[FactoryReset] Error: Unable to delete '%s'!  (%s)" % (target, str(err)))
 
-	def keyCancel(self):  # Old Setup close key method.
-		self.closeConfigList(recursiveClose=False)
-
-	def closeRecursive(self):  # Old Setup close recursive key method.
-		self.closeConfigList(recursiveClose=True)
-
-	def closeConfigList(self, recursiveClose=False):
-		self.close(recursiveClose)
+	def closeConfigList(self, closeParameters=()):
+		self.close(*closeParameters)

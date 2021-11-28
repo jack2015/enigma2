@@ -246,6 +246,7 @@ int eServiceWebTS::openHttpConnection(std::string url)
 	if (connect(fd, (sockaddr*)&addr, sizeof(addr)) == -1) {
 		std::string msg = "connect failed for: " + url;
 		eDebug("[eServiceWebTS] %s", msg.c_str());
+		close(fd);
 		return -1;
 	}
 
@@ -382,7 +383,7 @@ void eServiceWebTS::recv_event(int evt)
 			m_decoder->pause();
 			m_event(this, evStart);
 			m_decoder->play();
-			
+
 		}
 		bool wasnull = !m_audioInfo;
 		m_streamthread->getAudioInfo(m_audioInfo);
@@ -720,7 +721,7 @@ bool eStreamThreadWeb::scanAudioInfo(unsigned char buf[], int len)
 			if (APID == 0)
 				APID =pid;
 			lang = getDescriptor(pmt+b+5, pmt[b+4], LANGUAGE_DESCRIPTOR);
-			ainfo->addAudio(pid, lang, "AACHE", eDVBAudio::aAACHE);
+			ainfo->addAudio(pid, lang, "HEAAC", eDVBAudio::aHEAAC);
 			break;
 		}
 		b += 4 + pmt[b+4];

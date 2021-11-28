@@ -6,6 +6,7 @@ from time import time, localtime, strftime
 from skin import parseColor
 from Tools.Hex2strColor import Hex2strColor
 
+
 class NextEpgInfo(Renderer, VariableText):
 	def __init__(self):
 		Renderer.__init__(self)
@@ -15,7 +16,7 @@ class NextEpgInfo(Renderer, VariableText):
 		self.hideLabel = 0
 		self.timecolor = ""
 		self.labelcolor = ""
-		self.foregroundColor = "\c00?0?0?0"
+		self.foregroundColor = "\c00f0f0f0"
 		self.numOfSpaces = 1
 
 	GUI_WIDGET = eLabel

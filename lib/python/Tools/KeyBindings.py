@@ -154,17 +154,19 @@ keyDescriptions = [{  # id=0 - dmm0 remote directory, DM8000.
 	KEYIDS["KEY_CONTEXT_MENU"]: ("CONTEXT",),
 	KEYIDS["KEY_DOWN"]: ("DOWN",),
 	KEYIDS["KEY_EJECTCD"]: ("EJECTCD",),
+	KEYIDS["KEY_END"]: ("END",),
 	KEYIDS["KEY_ENTER"]: ("ENTER", "kbd"),
 	KEYIDS["KEY_EPG"]: ("EPG",),
 	KEYIDS["KEY_EXIT"]: ("EXIT",),
 	KEYIDS["KEY_F1"]: ("F1",),
 	KEYIDS["KEY_F2"]: ("F2",),
 	KEYIDS["KEY_F3"]: ("F3",),
-	KEYIDS["KEY_F6"]: ("PIP",),
 	KEYIDS["KEY_FASTFORWARD"]: ("FASTFORWARD",),
 	KEYIDS["KEY_FAVORITES"]: ("FAV",),
+	KEYIDS["KEY_FILE"]: ("LIST",),
 	KEYIDS["KEY_GREEN"]: ("GREEN",),
 	KEYIDS["KEY_HELP"]: ("HELP",),
+	KEYIDS["KEY_HOME"]: ("HOME",),
 	KEYIDS["KEY_HOMEPAGE"]: ("HOMEPAGE",),
 	KEYIDS["KEY_INFO"]: ("INFO",),
 	KEYIDS["KEY_LAST"]: ("BACK",),
@@ -172,6 +174,7 @@ keyDescriptions = [{  # id=0 - dmm0 remote directory, DM8000.
 	KEYIDS["KEY_LIST"]: ("PLAYLIST",),
 	KEYIDS["KEY_MEDIA"]: ("MEDIA",),
 	KEYIDS["KEY_MENU"]: ("MENU",),
+	KEYIDS["KEY_MODE"]: ("VKEY",),
 	KEYIDS["KEY_MUTE"]: ("MUTE",),
 	KEYIDS["KEY_NEXT"]: ("ARROWRIGHT",),
 	KEYIDS["KEY_NEXTSONG"]: ("NEXTSONG",),
@@ -180,6 +183,7 @@ keyDescriptions = [{  # id=0 - dmm0 remote directory, DM8000.
 	KEYIDS["KEY_PAGEDOWN"]: ("PAGEDOWN",),
 	KEYIDS["KEY_PAGEUP"]: ("PAGEUP",),
 	KEYIDS["KEY_PAUSE"]: ("PAUSE",),
+	KEYIDS["KEY_PC"]: ("LAN",),
 	KEYIDS["KEY_PLAY"]: ("PLAY",),
 	KEYIDS["KEY_PLAYPAUSE"]: ("PLAYPAUSE",),
 	KEYIDS["KEY_POWER"]: ("POWER",),
@@ -203,6 +207,7 @@ keyDescriptions = [{  # id=0 - dmm0 remote directory, DM8000.
 	KEYIDS["KEY_SUBTITLE"]: ("SUBTITLE",),
 	KEYIDS["KEY_SWITCHVIDEOMODE"]: ("VMODE",),
 	KEYIDS["KEY_TEXT"]: ("TEXT",),
+	KEYIDS["KEY_TIME"]: ("TIMESHIFT",),
 	KEYIDS["KEY_TV"]: ("TV",),
 	KEYIDS["KEY_UP"]: ("UP",),
 	KEYIDS["KEY_VIDEO"]: ("VIDEO",),
@@ -210,6 +215,7 @@ keyDescriptions = [{  # id=0 - dmm0 remote directory, DM8000.
 	KEYIDS["KEY_VOLUMEDOWN"]: ("VOL-",),
 	KEYIDS["KEY_VOLUMEUP"]: ("VOL+",),
 	KEYIDS["KEY_YELLOW"]: ("YELLOW",),
+	KEYIDS["KEY_ZOOM"]: ("ZOOM",),
 	# Discrete power codes
 	KEYIDS["KEY_POWER2"]: ("POWER2",),
 	KEYIDS["KEY_SUSPEND"]: ("SUSPEND",),
@@ -332,8 +338,10 @@ keyDescriptions = [{  # id=0 - dmm0 remote directory, DM8000.
 	KEYIDS["KEY_YELLOW"]: ("YELLOW",)
 }]
 
+
 def addKeyBinding(domain, key, context, action, flags):
 	keyBindings.setdefault((context, action), []).append((key, domain, flags))
+
 
 def removeKeyBinding(key, context, action, wild=True):
 	if wild and action == "*":
@@ -351,11 +359,14 @@ def removeKeyBinding(key, context, action, wild=True):
 
 # Returns a list of (key, flags) for a specified action.
 #
+
+
 def queryKeyBinding(context, action):
 	if (context, action) in keyBindings:
 		return [(x[0], x[2]) for x in keyBindings[(context, action)]]
 	else:
 		return []
+
 
 def getKeyDescription(key):
 	if rc_model.rcIsDefault():
@@ -371,11 +382,14 @@ def getKeyDescription(key):
 			idx = 2
 	return keyDescriptions[idx].get(key)
 
+
 def getKeyBindingKeys(filterfn=lambda key: True):
 	return filter(filterfn, keyBindings)
 
 # Remove all entries of domain "domain".
 #
+
+
 def removeKeyBindings(domain):
 	for x in keyBindings:
 		keyBindings[x] = filter(lambda e: e[1] != domain, keyBindings[x])
