@@ -73,8 +73,12 @@ def getIsBroadcom():
 
 
 def getChipSetString():
-	if getMachineBuild() in ('dm7080', 'dm820'):
+	if getMachineBuild() in ('dm800se', 'dm800sev2', 'dm500hd', 'dm500hdv2'):
+		return "7405"
+	elif getMachineBuild() in ('dm7080', 'dm820'):
 		return "7435"
+	elif getMachineBuild() in ('dm8000',):
+		return "7400"
 	elif getMachineBuild() in ('dm520', 'dm525'):
 		return "73625"
 	elif getMachineBuild() in ('dm900', 'dm920', 'et13000', 'sf5008'):
