@@ -27,6 +27,13 @@ enigma.eConsoleAppContainer = eConsoleImpl.eConsoleAppContainer
 from boxbranding import getBoxType
 boxtype = getBoxType()
 
+# This includes initializing the translation engine.
+# Moving this further down will break translation.
+# Moving further up will break imports in config.py
+profile("SetupDevices")
+import Components.SetupDevices
+Components.SetupDevices.InitSetupDevices()
+
 if getImageArch() in ("aarch64"):
 	import usb.core
 	import usb.backend.libusb1
@@ -632,10 +639,6 @@ profile("InputDevice")
 import Components.InputDevice
 Components.InputDevice.InitInputDevices()
 import Components.InputHotplug
-
-profile("SetupDevices")
-import Components.SetupDevices
-Components.SetupDevices.InitSetupDevices()
 
 profile("UserInterface")
 import Screens.UserInterfacePositioner
