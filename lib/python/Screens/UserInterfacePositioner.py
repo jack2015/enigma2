@@ -72,6 +72,9 @@ def InitOsdPosition():
 	else:
 		SystemInfo["OsdMenu"] = False
 
+	if getBrandOEM() in ('dreambox',):
+		SystemInfo["CanChangeOsdPosition"] = True
+
 	def setOSDLeft(configElement):
 		if SystemInfo["CanChangeOsdPosition"]:
 			setPositionParameter("left", configElement)
