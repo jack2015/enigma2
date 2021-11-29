@@ -104,7 +104,8 @@ int eDVBCIResourceManagerSession::doAction()
 //				{0x00, 0x04, 0x10, 0x01},
 			};
 
-		bool ciplus = (m_version == 1 || m_version == 2) and ciplus_cert_param_files_exists();
+		/*bool ciplus = (m_version == 1 || m_version == 2) and ciplus_cert_param_files_exists();*/
+		bool ciplus = ciplus_cert_param_files_exists();
 		const void *p = ciplus ? data_v2 : data;
 		int len = ciplus ? sizeof(data_v2) : sizeof(data);
 		sendAPDU(tag, p, len);
