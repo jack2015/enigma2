@@ -230,14 +230,14 @@ self.session.open(HdmiCECSetupScreen)
 			<id val="bhbackup" />
 			<item weight="5" level="1" text="Full Backup">
 <code>
-from Plugins.SystemPlugins.OBH.ImageManager import VIXImageManager
-self.session.open(VIXImageManager)
+from Plugins.SystemPlugins.OBH.ImageManager import OpenBhImageManager
+self.session.open(OpenBhImageManager)
 </code>
 			</item>
 			<item weight="10" level="1" text="Settings Backup">
 <code>
-from Plugins.SystemPlugins.OBH.BackupManager import VIXBackupManager
-self.session.open(VIXBackupManager)
+from Plugins.SystemPlugins.OBH.BackupManager import OpenBhBackupManager
+self.session.open(OpenBhBackupManager)
 </code>
 			</item>
 		</menu>
