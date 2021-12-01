@@ -231,7 +231,9 @@ self.session.open(HdmiCECSetupScreen)
 			<item weight="5" level="1" text="Full Backup">
 <code>
 from Plugins.SystemPlugins.OBH.ImageManager import OpenBhImageManager
-self.session.open(OpenBhImageManager)
+from boxbranding import getBoxType
+if getBoxType() not in ("dm800se",):
+	self.session.open(OpenBhImageManager)
 </code>
 			</item>
 			<item weight="10" level="1" text="Settings Backup">
