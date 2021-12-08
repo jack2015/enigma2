@@ -1,6 +1,5 @@
-from boxbranding import getBoxType, getBrandOEM, getMachineName
+from boxbranding import getBoxType, getBrandOEM
 from Components.About import about
-
 
 class HardwareInfo:
 	device_name = None
@@ -49,28 +48,13 @@ class HardwareInfo:
 	def get_device_version(self):
 		return HardwareInfo.device_version
 
-	def get_device_model(self):
-		return getBoxType()
-
-	def get_vu_device_name(self):
-		return getBoxType()
-
-	def get_friendly_name(self):
-		return getMachineName()
-
 	def has_hdmi(self):
 		return not (HardwareInfo.device_name == 'dm800' or (HardwareInfo.device_name == 'dm8000' and HardwareInfo.device_version == None))
-
-	def linux_kernel(self):
-		try:
-			return open("/proc/version", "r").read().split(' ', 4)[2].split('-', 2)[0]
-		except:
-			return "unknown"
 
 	def has_deepstandby(self):
 		return getBoxType() != 'dm800'
 
 	def is_nextgen(self):
-		if about.getCPUString() in ('BCM7346B2', 'BCM7425B2', 'BCM7429B0'):
-			return True
-		return False
+		if about.getCpuCoresInt() < 2 or about.getCPUSpeedMHzInt() < 750:
+			return False
+		return True
