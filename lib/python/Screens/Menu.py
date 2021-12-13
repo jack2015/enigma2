@@ -55,14 +55,23 @@ class MenuSummary(Screen):
 		self.onHide.append(self.removeWatcher)
 
 	def addWatcher(self):
-		self.parent["menu"].onSelectionChanged.append(self.selectionChanged)
-	 	self.selectionChanged()
+		try:
+			self.parent["menu"].onSelectionChanged.append(self.selectionChanged)
+	 		self.selectionChanged()
+		except:
+			pass
 
 	def removeWatcher(self):
-		self.parent["menu"].onSelectionChanged.remove(self.selectionChanged)
+		try:
+			self.parent["menu"].onSelectionChanged.remove(self.selectionChanged)
+		except:
+			pass
 
 	def selectionChanged(self):
-		self["MenuEntry"].text = self.parent["menu"].getCurrent()[0]
+		try:
+			self["MenuEntry"].text = self.parent["menu"].getCurrent()[0]
+		except:
+			pass
 
 
 class Menu(Screen, ProtectedScreen):
