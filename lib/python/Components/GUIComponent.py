@@ -90,7 +90,6 @@ class GUIComponent(object):
 		try:
 			p = self.instance.position()
 			return p.x(), p.y()
-
 		except:
 			return 0,0
 
