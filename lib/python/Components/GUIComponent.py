@@ -1,6 +1,6 @@
 import skin
 
-from enigma import ePoint, eSize
+from enigma import ePoint, eSize, getDesktop
 
 class GUIComponent(object):
 	""" GUI component """
@@ -91,7 +91,10 @@ class GUIComponent(object):
 			p = self.instance.position()
 			return p.x(), p.y()
 		except:
-			return 0,0
+			if getDesktop(0).size().width() >= 1920:
+				return 1350,0
+			else:
+				return 250,250
 
 	def getWidth(self):
 		return self.width
